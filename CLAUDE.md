@@ -6,7 +6,9 @@ A Chrome (Manifest V3) extension that captures a web interaction from a live pag
 
 ## Status
 
-- **Current milestone: M0. The setup plan is waiting for approval.** No code has been scaffolded yet.
+- **M1.1 (scaffold) is done.** The user verified it in Chrome: the side panel opens from the toolbar and live reload works.
+- **Next: M1.2, the page connection test.** Its plan still needs to be agreed before any code is written.
+- The current side panel UI is a placeholder. The user will set the visual direction (design tokens) when the real screens are built, starting in M2.
 - Update this section and the roadmap checkboxes whenever a milestone is completed.
 
 ## Working agreement
@@ -21,12 +23,15 @@ A Chrome (Manifest V3) extension that captures a web interaction from a live pag
 
 ## Stack
 
-- **WXT** (exact version pinned) on Vite, Manifest V3, targeting Chrome only for now. The Side Panel API needs Chrome 114 or later, and we develop on current stable.
-- **TypeScript** in strict mode everywhere.
-- **React + Tailwind CSS v4**, used in the **side panel only**.
+- **WXT 0.21.5** on Vite, Manifest V3, targeting Chrome only for now. The Side Panel API needs Chrome 114 or later, and we develop on current stable. WXT needs Node 22 or newer.
+- **TypeScript 5.9** in strict mode, which includes `noUncheckedIndexedAccess`. TS 7 is a native rewrite, so upgrade it deliberately and only after WXT supports it.
+- **React 19 + Tailwind CSS v4** (through `@tailwindcss/vite`), used in the **side panel only**.
 - **The inspector content script is plain TypeScript.** No React or Tailwind is injected into other people's pages.
-- **Vitest** for unit tests. It covers `src/core` first.
-- **npm** is the package manager.
+- **Vitest** for unit tests of `src/core`. Add it with the first piece of pure logic, not before.
+- **npm** is the package manager. Every version is pinned exactly (`.npmrc` sets `save-exact=true`), and `package-lock.json` is committed.
+- **WXT auto-imports are off** (`imports: false`). Import WXT APIs explicitly from `'#imports'`, e.g. `import { browser, defineBackground } from '#imports'`. The path alias `@/` points to `src/`.
+- `web-ext` is a dev dependency. `npm run dev` uses it to open Chrome through Chrome's DevTools protocol (`Extensions.loadUnpacked`).
+- `npm audit` reports a known low-severity `deepmerge` advisory inside `web-ext`'s dev-only dependency chain. **Don't run `npm audit fix --force`**, because it downgrades `web-ext` to an ancient version.
 
 ## Architecture
 
@@ -61,6 +66,7 @@ src/
   messaging/        typed message contracts shared by panel + inspector
   storage/          chrome.storage wrappers (settings, recent captures)
 fixtures/           local test pages with known interaction values (ground truth)
+public/icon/        extension icons (WXT placeholders; to be replaced with our own design)
 ```
 
 ## Evidence and accuracy
@@ -86,7 +92,7 @@ Known blind spots, which the UI and the recipes must communicate honestly:
 
 ## Privacy and security (non-negotiable)
 
-- Request the minimum permissions. The current target is `sidePanel`, `activeTab`, `scripting`, and `storage`. Use per-site `optional_host_permissions` only if `activeTab` turns out to be insufficient. **After any config change, inspect the generated `manifest.json`.**
+- Request the minimum permissions, and add each one only in the milestone that first uses it. Right now the manifest has only `sidePanel`. The planned set is `sidePanel`, `activeTab`, `scripting`, and `storage`. Use per-site `optional_host_permissions` only if `activeTab` turns out to be insufficient. **After any config change, run `npm run build` and inspect `.output/chrome-mv3/manifest.json`.** Development builds add `tabs`, `scripting`, and localhost access for hot reload. Those additions are expected, and they aren't in the production build.
 - Nothing runs on a page until the user starts it. Everything stops when the user stops, the panel closes, or the tab navigates away.
 - Never capture form values, password fields, `contenteditable` content, cookies, web storage, or network data. Text is capped to short labels.
 - Page content is untrusted. Render it only as text (no `dangerouslySetInnerHTML`, no `eval`). In AI prompts, treat it as data, never as instructions.
@@ -110,11 +116,16 @@ Known blind spots, which the UI and the recipes must communicate honestly:
 
 ## Commands
 
-To be filled in at M1.1, after scaffolding. The expected commands are `npm run dev`, `npm run build`, `npm run compile` (type check), and `npm test`.
+Run these from the repo root:
+
+- `npm run dev` starts the dev server and opens a fresh Chrome profile with the extension and hot reload. Chrome shows an "unsupported command-line flag: --disable-blink-features=AutomationControlled" banner. That's expected: `web-ext` adds the flag so sites with bot detection behave normally.
+- `npm run build` creates a production build in `.output/chrome-mv3`.
+- `npm run compile` runs the TypeScript type check.
+- `npm run zip` creates the Chrome Web Store package.
 
 ## Roadmap
 
-- [ ] **M1.1** Scaffold WXT + React + TS + Tailwind. The side panel opens from the toolbar icon, and the generated manifest is reviewed.
+- [x] **M1.1** Scaffold WXT + React + TS + Tailwind. The side panel opens from the toolbar icon, and the generated manifest is reviewed.
 - [ ] **M1.2** Page connection spike: inject into the active tab, round-trip messages over a port, and tear down on close. Also handle unsupported pages and verify the permission model.
 - [ ] **M2.1** Picker: hover highlight overlay, click to select, Esc to cancel.
 - [ ] **M2.2** Element snapshot: DOM path, curated computed styles, a clean inspector card, re-select and clear.
