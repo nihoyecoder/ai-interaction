@@ -29,7 +29,7 @@ To open the extension, click the puzzle-piece **Extensions** icon in Chrome's to
 
 Notes:
 
-- Development builds include extra permissions that WXT uses for hot reload: `tabs`, `scripting`, and access to the local dev server. Production builds don't include them. To see the real permission set, check `.output/chrome-mv3/manifest.json` after running `npm run build`.
+- Development builds include extra permissions that WXT uses for hot reload: `tabs`, `scripting`, and access to the local dev server. Production builds don't include them. To see the real permission set, check `.output/chrome-mv3/manifest.json` after running `npm run build`. One effect: the dev build can see every tab's address, so test anything about page access with the production build (see below).
 - The Chrome window opened by `npm run dev` shows a banner saying "You are using an unsupported command-line flag: --disable-blink-features=AutomationControlled". This is expected and you can dismiss it. `web-ext` adds the flag so websites don't treat the dev browser as a bot. It applies only to this throwaway profile, never to your normal Chrome.
 
 ### Load into your normal Chrome
@@ -46,4 +46,5 @@ Notes:
 | `npm run dev` | Starts the dev server and opens Chrome with live reload |
 | `npm run build` | Creates a production build in `.output/chrome-mv3` |
 | `npm run compile` | Runs the TypeScript type check |
+| `npm test` | Runs the unit tests |
 | `npm run zip` | Creates a zip ready for the Chrome Web Store |

@@ -1,0 +1,26 @@
+export type BadgeTone = 'positive' | 'neutral' | 'warning';
+
+const TONES: Record<BadgeTone, { pill: string; dot: string }> = {
+  positive: {
+    pill: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',
+    dot: 'bg-emerald-500',
+  },
+  neutral: {
+    pill: 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300',
+    dot: 'bg-neutral-400',
+  },
+  warning: {
+    pill: 'bg-amber-50 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
+    dot: 'bg-amber-500',
+  },
+};
+
+export function StatusBadge({ label, tone }: { label: string; tone: BadgeTone }) {
+  const styles = TONES[tone];
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${styles.pill}`}>
+      <span aria-hidden="true" className={`size-1.5 rounded-full ${styles.dot}`} />
+      {label}
+    </span>
+  );
+}

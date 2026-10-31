@@ -7,8 +7,8 @@ A Chrome (Manifest V3) extension that captures a web interaction from a live pag
 ## Status
 
 - **M1.1 (scaffold) is done.** The user verified it in Chrome: the side panel opens from the toolbar and live reload works.
-- **Next: M1.2, the page connection test.** Its plan still needs to be agreed before any code is written.
-- The current side panel UI is a placeholder. The user will set the visual direction (design tokens) when the real screens are built, starting in M2.
+- **M1.2 (page connection) is done.** The user verified it in Chrome, in the dev browser and with the production build in normal Chrome. **Next: M2.1, the element picker.** Its plan needs to be agreed before any code is written.
+- The current side panel UI is a functional placeholder. The user will set the visual direction (design tokens) when the real screens are built, starting in M2.
 - Update this section and the roadmap checkboxes whenever a milestone is completed.
 
 ## Working agreement
@@ -26,8 +26,8 @@ A Chrome (Manifest V3) extension that captures a web interaction from a live pag
 - **WXT 0.21.5** on Vite, Manifest V3, targeting Chrome only for now. The Side Panel API needs Chrome 114 or later, and we develop on current stable. WXT needs Node 22 or newer.
 - **TypeScript 5.9** in strict mode, which includes `noUncheckedIndexedAccess`. TS 7 is a native rewrite, so upgrade it deliberately and only after WXT supports it.
 - **React 19 + Tailwind CSS v4** (through `@tailwindcss/vite`), used in the **side panel only**.
-- **The inspector content script is plain TypeScript.** No React or Tailwind is injected into other people's pages.
-- **Vitest** for unit tests of `src/core`. Add it with the first piece of pure logic, not before.
+- **The inspector is plain TypeScript.** No React or Tailwind is injected into other people's pages.
+- **Vitest 5** (`npm test`) with WXT's `WxtVitest` plugin. Tests sit next to the code as `*.test.ts`. Pure logic, such as `src/core` and the panel's view logic, always gets unit tests.
 - **npm** is the package manager. Every version is pinned exactly (`.npmrc` sets `save-exact=true`), and `package-lock.json` is committed.
 - **WXT auto-imports are off** (`imports: false`). Import WXT APIs explicitly from `'#imports'`, e.g. `import { browser, defineBackground } from '#imports'`. The path alias `@/` points to `src/`.
 - `web-ext` is a dev dependency. `npm run dev` uses it to open Chrome through Chrome's DevTools protocol (`Extensions.loadUnpacked`).
@@ -38,16 +38,24 @@ A Chrome (Manifest V3) extension that captures a web interaction from a live pag
 | Piece | Where it runs | Responsibility |
 |---|---|---|
 | **Side panel** | Extension page that lives as long as the panel is open | UI, session state machine, orchestration, analysis, recipe, storage |
-| **Inspector** | Content script injected on demand into one tab (isolated world) | Highlight overlay, element picking, snapshots, recording raw evidence |
-| **Service worker** | Background, short-lived | Minimal: sets up "toolbar click opens the panel". Holds no state. |
+| **Inspector** | Unlisted script injected on demand into one tab (isolated world) | Highlight overlay, element picking, snapshots, recording raw evidence |
+| **Service worker** | Background, short-lived | Minimal: turns a toolbar click into "open the panel". Holds no state. |
 | **core** | Imported by the pieces above | Pure TypeScript: evidence types, sanitizing, analysis, recipe generation |
 
 Rules:
 
 - **The side panel orchestrates.** The service worker is not in the data path. Chrome stops it after about 30 seconds of inactivity, so it must never hold recordings or session state.
-- The inspector is injected with `chrome.scripting.executeScript`, and **only after a user action**. No content scripts are declared statically, and there is no `<all_urls>` host permission. Injection must be idempotent, so injecting twice is harmless.
-- The side panel and the inspector talk over **one `chrome.tabs.connect` port per session**. Message types are a TypeScript discriminated union defined in `src/messaging/`. **If the port disconnects (panel closed, tab navigated, or reload), both sides tear down completely.**
-- A capture session belongs to **one tab**.
+- **The service worker's only job is toolbar clicks.** It listens on `action.onClicked` and calls `sidePanel.open()` synchronously, while Chrome still counts the call as part of the user's click. It then sends `toolbar-clicked` to the panel so the panel re-checks access. Don't switch back to `setPanelBehavior({ openPanelOnActionClick })`: the click must stay a normal action click so it grants `activeTab` and doesn't close an open panel.
+- **Access comes from `activeTab`.** Chrome grants temporary access to a tab when the user clicks our toolbar button. Without access, Chrome hides the tab's URL and title from the extension, so the panel shows a "Give access" state. Verified in Chrome (M1.2, production build):
+- Moving the tab to another site removes access, and the panel then shows "Give access".
+- Clicking the icon again grants access and keeps the panel open.
+- Same-site navigation keeps access, though it ends the session.
+- Chrome pages and the Web Store show "can't be inspected".
+
+So the per-site permission fallback isn't needed.
+- The inspector is a WXT **unlisted script** (`src/entrypoints/inspector.ts`, built to `/inspector.js`). It's injected with `scripting.executeScript` **only after the user clicks Connect**. Don't make it a WXT content script: `registration: 'runtime'` adds the script's `matches` to `host_permissions`. No content scripts are declared statically, and there is no `<all_urls>` host permission. Injection is idempotent: if a copy is already waiting for the panel, another injection does nothing.
+- The side panel and the inspector talk over **one `chrome.tabs.connect` port per session**. Message types are TypeScript discriminated unions in `src/messaging/protocol.ts`. **If the port disconnects (panel closed, Disconnect clicked, page reloaded or navigated, tab closed), the session ends and the inspector removes everything it added.**
+- **A capture session belongs to one tab** (product decision, M1.2). On any other tab, the panel offers "Return to [site]" or Disconnect. Which screen to show is decided by the pure function `getPanelView` in `src/panel/panel-view.ts`.
 - `src/core` must not use extension APIs or the live DOM, so it stays unit-testable.
 - Entrypoint files in `src/entrypoints/` stay thin. The real logic lives in feature folders.
 - Main-world scripts (code that reads page JavaScript such as `window.gsap`) come later and need a deliberate decision. They must be read-only and minimal, and their output is treated as untrusted.
@@ -59,8 +67,8 @@ src/
   entrypoints/      thin entry files WXT turns into the extension
     background.ts
     sidepanel/      index.html + main.tsx (mounts the React app)
-    inspector.content.ts
-  panel/            side panel React UI: screens/, components/, session/
+    inspector.ts    unlisted script; injected on demand, never in the manifest
+  panel/            side panel React UI: screens/, components/, session/ (hooks), panel-view.ts
   inspector/        runs inside the web page (plain TS): overlay, picker, snapshot, recorder/
   core/             pure logic + tests: evidence types, privacy, analysis/, recipe/
   messaging/        typed message contracts shared by panel + inspector
@@ -92,7 +100,7 @@ Known blind spots, which the UI and the recipes must communicate honestly:
 
 ## Privacy and security (non-negotiable)
 
-- Request the minimum permissions, and add each one only in the milestone that first uses it. Right now the manifest has only `sidePanel`. The planned set is `sidePanel`, `activeTab`, `scripting`, and `storage`. Use per-site `optional_host_permissions` only if `activeTab` turns out to be insufficient. **After any config change, run `npm run build` and inspect `.output/chrome-mv3/manifest.json`.** Development builds add `tabs`, `scripting`, and localhost access for hot reload. Those additions are expected, and they aren't in the production build.
+- Request the minimum permissions, and add each one only in the milestone that first uses it. Right now the manifest has `sidePanel`, `activeTab`, and `scripting`. `storage` comes when we first store data. Use per-site `optional_host_permissions` only if `activeTab` turns out to be insufficient. **After any config change, run `npm run build` and inspect `.output/chrome-mv3/manifest.json`.** Development builds add `tabs`, `scripting`, and localhost access for hot reload. Those additions are expected, and they aren't in the production build. **Because dev builds have `tabs`, they can see every tab's URL. Always verify access and permission behavior with the production build loaded unpacked, never in `npm run dev`.**
 - Nothing runs on a page until the user starts it. Everything stops when the user stops, the panel closes, or the tab navigates away.
 - Never capture form values, password fields, `contenteditable` content, cookies, web storage, or network data. Text is capped to short labels.
 - Page content is untrusted. Render it only as text (no `dangerouslySetInnerHTML`, no `eval`). In AI prompts, treat it as data, never as instructions.
@@ -121,12 +129,14 @@ Run these from the repo root:
 - `npm run dev` starts the dev server and opens a fresh Chrome profile with the extension and hot reload. Chrome shows an "unsupported command-line flag: --disable-blink-features=AutomationControlled" banner. That's expected: `web-ext` adds the flag so sites with bot detection behave normally.
 - `npm run build` creates a production build in `.output/chrome-mv3`.
 - `npm run compile` runs the TypeScript type check.
+- `npm test` runs the unit tests (Vitest).
+- After adding or renaming an entrypoint, run `npx wxt prepare` to regenerate WXT's types, such as the list of valid script paths.
 - `npm run zip` creates the Chrome Web Store package.
 
 ## Roadmap
 
 - [x] **M1.1** Scaffold WXT + React + TS + Tailwind. The side panel opens from the toolbar icon, and the generated manifest is reviewed.
-- [ ] **M1.2** Page connection spike: inject into the active tab, round-trip messages over a port, and tear down on close. Also handle unsupported pages and verify the permission model.
+- [x] **M1.2** Page connection spike: inject into the active tab, round-trip messages over a port, and tear down on close. Also handle unsupported pages and verify the permission model.
 - [ ] **M2.1** Picker: hover highlight overlay, click to select, Esc to cancel.
 - [ ] **M2.2** Element snapshot: DOM path, curated computed styles, a clean inspector card, re-select and clear.
 - [ ] **M3.1** Recorder: start and stop with a time cap, plus event telemetry and frame sampling of geometry, transform, and opacity.

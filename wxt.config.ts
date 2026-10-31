@@ -13,10 +13,13 @@ export default defineConfig({
   manifest: {
     name: 'AI Interaction',
     description: 'See an interaction you love. Capture it. Recreate it with AI.',
-    // The toolbar button. Clicking it opens the side panel (see background.ts).
+    // The toolbar button. Clicking it opens the side panel and grants temporary access to the tab (see background.ts).
     action: {
       default_title: 'Open AI Interaction',
     },
-    permissions: ['sidePanel'],
+    // sidePanel: show our panel.
+    // activeTab: temporary access to a tab, granted only when the user clicks our toolbar button.
+    // scripting: inject the inspector into that tab when the user clicks Connect.
+    permissions: ['sidePanel', 'activeTab', 'scripting'],
   },
 });
