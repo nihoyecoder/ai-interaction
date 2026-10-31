@@ -46,5 +46,6 @@ export function findStagger(segments: readonly MotionSegment[], recording: Recor
     order: median > 0 ? 'forward' : 'reverse',
     certainty: observed ? 'observed' : 'measured',
     subjects: group.map((segment) => segment.subject),
+    elements: group.map((segment) => segment.element),
   };
 }

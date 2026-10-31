@@ -98,7 +98,7 @@ describe('describeEasingFit', () => {
         property: 'translateX',
         quality: 'none',
         best: { name: 'power2.inOut', gsap: 'power2.inOut', css: null, error: 0.081 },
-        custom: { css: 'cubic-bezier(0.3, 0.9, 0.9, 0.2)', error: 0.004 },
+        custom: { css: 'cubic-bezier(0.3, 0.9, 0.9, 0.2)', error: 0.004, durationMs: 800 },
         durationMs: 800,
       }),
     ).toEqual({

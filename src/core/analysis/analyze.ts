@@ -140,8 +140,8 @@ function toSegment(
   const easing = instant || animation ? null : fitSegmentEasing(raw, series, changes, frameMs);
   // Without an observed duration: the fitted curve's duration if one fits, else the frames, counting the
   // one before the first visible change.
-  const measuredDuration =
-    easing && easing.quality !== 'none' ? easing.durationMs : Math.round(last.t - first.t + frameMs);
+  const fittedDuration = easing?.quality === 'none' ? easing.custom?.durationMs : easing?.durationMs;
+  const measuredDuration = fittedDuration ?? Math.round(last.t - first.t + frameMs);
 
   return {
     element: raw.element,

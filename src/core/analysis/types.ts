@@ -87,8 +87,8 @@ export interface EasingFit {
   /** close: within 2%. rough: within 5%. none: no common easing fits. */
   quality: 'close' | 'rough' | 'none';
   best: EasingMatch;
-  /** When no common easing fits: the closest cubic-bezier curve. */
-  custom: { css: string; error: number } | null;
+  /** When no common easing fits: the closest cubic-bezier curve, and the duration that fits it. */
+  custom: { css: string; error: number; durationMs: number } | null;
   /** The motion's duration according to the best-fitting curve. Usually closer than counting frames. */
   durationMs: number;
 }
@@ -141,6 +141,8 @@ export interface Stagger {
   /** Observed when the delays come from Chrome's animation list; measured from motion starts otherwise. */
   certainty: 'observed' | 'measured';
   subjects: string[];
+  /** The staggered elements' indexes, in page order. */
+  elements: number[];
 }
 
 export interface InteractionAnalysis {

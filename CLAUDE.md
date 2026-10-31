@@ -17,7 +17,13 @@ A Chrome (Manifest V3) extension that captures a web interaction from a live pag
   - It's split into **M4.1** (trigger, motion, stagger) and **M4.2** (easing fit).
   - The user's exported captures from the test pages become golden tests in `fixtures/captures/`.
 - **M4.1 (analysis: trigger, motion, stagger) is done.** It's verified on **real Chrome recordings, made automatically** (`npm run golden:record`, 7 golden tests, stable across 3 fresh recordings). The user asked for this automation instead of testing by hand. **Not yet seen by a person:** the Analysis card's layout in the panel, and the Download JSON button (its M3.3 check may also have been skipped). Ask the user to glance at both during the next manual test.
-- **M4.2 (easing fit) is done.** It's verified on real Chrome recordings of 7 known JavaScript easings (fixture section 8). All 14 golden tests are stable across 3 fresh recordings. Product decision: when nothing fits, say so honestly and give the closest custom cubic-bezier. **Phase 4 is complete. Next: Phase 5, the recipe (M5.1).** Its plan needs to be agreed before any code is written.
+- **M4.2 (easing fit) is done.** It's verified on real Chrome recordings of 7 known JavaScript easings (fixture section 8). All 14 golden tests are stable across 3 fresh recordings. Product decision: when nothing fits, say so honestly and give the closest custom cubic-bezier. Phase 4 is complete.
+- **M5.1 (recipe) is done.** Product decision: the first target is **React + GSAP, using plain CSS where CSS is enough**.
+  - Verified:
+    - recipe tests on all 15 real captures
+    - panel screenshots of real components with real data (`npm run preview:panel`), reviewed in light and dark mode
+  - Not yet done: a person pasting a recipe into Claude Code. That's M5.2.
+  - **Next: M5.2, comparing our recipe with a plain recording-plus-prompt.** Its plan needs to be agreed before any code is written.
 - The current side panel UI is a functional placeholder. The user will set the visual direction (design tokens) when the real screens are built, starting in M2.
 - Update this section and the roadmap checkboxes whenever a milestone is completed.
 
@@ -172,6 +178,25 @@ So the per-site permission fallback isn't needed.
   - **Quality:** close is 2% RMS error or less, rough is 5% or less, otherwise none. "None" adds the closest `cubic-bezier`, fitted together with the timing.
   - **Duration:** the fitted end minus the fitted start, except for springs. A spring's end is undefined (any faster spring over a longer time matches), so springs use the measured duration.
   - The fitted easing is always **Estimated**.
+- **Recipe (M5.1)** (`src/core/recipe/`). `buildRecipe({ capture, analysis, styleRows })` is pure and deterministic, and outputs Markdown for an AI coding agent.
+  - **Steps:** motions are grouped by trigger and moment. A later step that ends where an earlier one began becomes "plays step N backwards". A stagger is one step.
+  - **"How to build it" follows the original mechanism**, so values stay exact:
+    - **CSS `:hover` transition:** a CSS-only snippet.
+    - **Class change plus CSS transition:** React state toggles the class, and CSS runs it. On scroll-into-view, ScrollTrigger's `toggleClass` adds the class.
+    - **Stagger, JavaScript, Web Animations, or unknown:** a `gsap.fromTo` with the captured values. CSS easings become exact `CustomEase` curves (`gsapEaseForCss`). Fitted eases use their GSAP names. A spring becomes `elastic.out` plus Motion's `{ type: 'spring', bounce }`.
+    - **Scroll links:** ScrollTrigger `scrub`, from `'top bottom'` to `'bottom top'`, using the observed keyframes when available.
+  - The Setup section lists only the plugins and imports the code actually uses, or says no library is needed.
+  - Every fact keeps its Observed, Measured, or Estimated label, and the approach is **Recommended**.
+  - Every recipe has a "How sure this is" section, says what wasn't captured, and includes reduced-motion advice (plus keyboard advice for hover).
+  - **The site's hostname is never included**; a test checks this.
+- **Panel results:** `RecordingResults` computes the capture, analysis, and recipe once, then renders `RecipeCard` (Copy recipe and Preview) above `AnalysisCard`. A stagger is shown as one "N × item" block.
+- **Panel preview** (`npm run preview:panel -- [captures]`, in `scripts/panel-preview/`):
+  - builds the real panel components with a real capture
+  - serves them over HTTP, since module scripts don't load from `file://`
+  - screenshots them at 380 px, in light and dark mode, into `.output/panel-preview/`
+  - uses its own `preview.css`, which points Tailwind at `src/` because the preview is built from another folder
+
+  Use it to look at UI changes when the user can't.
 - `src/core` must not use extension APIs or the live DOM, so it stays unit-testable.
 - Entrypoint files in `src/entrypoints/` stay thin. The real logic lives in feature folders.
 - Main-world scripts (code that reads page JavaScript such as `window.gsap`) come later and need a deliberate decision. They must be read-only and minimal, and their output is treated as untrusted.
@@ -252,6 +277,7 @@ Run these from the repo root:
 - `npm test` runs the unit tests (Vitest).
 - `npm run fixtures` serves `fixtures/` at http://127.0.0.1:5174 (local only). Run it in a second terminal next to `npm run dev`.
 - `npm run golden:record` re-records `fixtures/captures/*.json` in headless Chrome (no window). Pass scenario names to record only some of them, e.g. `npm run golden:record -- toggle reveal`.
+- `npm run preview:panel -- list hover-card` screenshots the panel's results screen for those captures into `.output/panel-preview/`.
 - After adding or renaming an entrypoint, run `npx wxt prepare` to regenerate WXT's types, such as the list of valid script paths.
 - `npm run zip` creates the Chrome Web Store package.
 
@@ -266,7 +292,7 @@ Run these from the repo root:
 - [x] **M3.3** Evidence model plus a simple timeline view and a JSON export for debugging.
 - [x] **M4.1** Analysis in `core`: trigger, motion segments, scroll links, stagger. Golden-tested on real Chrome recordings.
 - [x] **M4.2** Easing fit for measured (JavaScript-driven) motion. Golden-tested on 7 known easings.
-- [ ] **M5.1** Deterministic recipe, copyable, for one narrow target stack.
+- [x] **M5.1** Deterministic recipe, copyable, for React + GSAP (plain CSS where enough). Tested on all real captures.
 - [ ] **M5.2** Compare our recipe with a plain "recording + prompt" baseline. Then decide whether an AI step adds value.
 - [ ] **M5.3** (Only if M5.2 justifies it) AI-enhanced recipe through a secure backend.
 - [ ] **M6** Test on real sites, then performance, accessibility, polish, and Web Store readiness.

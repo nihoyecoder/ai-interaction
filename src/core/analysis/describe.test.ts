@@ -72,7 +72,13 @@ describe('describeChange', () => {
 describe('formatPropertyChange', () => {
   it('mentions overshoot and jumps', () => {
     expect(formatPropertyChange({ property: 'scale', from: 0.8, to: 1, min: 0.8, max: 1.06, jumpedFrom: 1 })).toBe(
-      'scale 0.8 → 1 (reaches 0.8 to 1.06 on the way), jumps there from 1 first',
+      'scale 0.8 → 1 (overshoots to 1.06 on the way), jumps there from 1 first',
+    );
+  });
+
+  it('mentions a wind-up before the motion', () => {
+    expect(formatPropertyChange({ property: 'translateX', from: 0, to: 100, min: -10, max: 100 })).toBe(
+      'translateX 0 → 100 px (first goes back to -10 px)',
     );
   });
 });

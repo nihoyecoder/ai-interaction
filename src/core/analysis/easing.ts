@@ -303,7 +303,7 @@ function fitCubicBezier(
   start: number,
   end: number,
   span: number,
-): { css: string; error: number } {
+): { css: string; error: number; durationMs: number } {
   // Parameters: x1, y1, x2, y2, start, end.
   const error = ([x1, y1, x2, y2, from, to]: number[]) =>
     (to ?? end) <= (from ?? start)
@@ -350,6 +350,7 @@ function fitCubicBezier(
   return {
     css: `cubic-bezier(${best.slice(0, 4).map((value) => formatNumber(value, 2)).join(', ')})`,
     error: Math.round(bestError * 1000) / 1000,
+    durationMs: Math.round((best[5] ?? end) - (best[4] ?? start)),
   };
 }
 

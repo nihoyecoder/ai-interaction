@@ -1,9 +1,9 @@
 import type { RestrictedReason } from '@/core/page-support';
 import { Button } from '../components/Button';
-import { AnalysisCard } from '../components/AnalysisCard';
 import { ElementDetails } from '../components/ElementDetails';
 import { ExportControls } from '../components/ExportControls';
 import { NoticeBanner } from '../components/NoticeBanner';
+import { RecordingResults } from '../components/RecordingResults';
 import { RecordingSummaryCard } from '../components/RecordingSummaryCard';
 import { RecordingTimer } from '../components/RecordingTimer';
 import { Screen } from '../components/Screen';
@@ -153,7 +153,7 @@ export function ViewScreen({
             }
           />
           {view.recording && view.recording.stopReason !== 'nothing-selected' && (
-            <AnalysisCard hostname={view.hostname} snapshot={view.snapshot} recording={view.recording} />
+            <RecordingResults hostname={view.hostname} snapshot={view.snapshot} recording={view.recording} />
           )}
           {view.recording && <RecordingSummaryCard recording={view.recording} />}
           <ElementDetails snapshot={view.snapshot} onSelectParent={onSelectParent} onSelectChild={onSelectChild} />

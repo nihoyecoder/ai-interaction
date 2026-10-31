@@ -1,5 +1,4 @@
-import { useMemo, type ReactNode } from 'react';
-import { analyzeCapture } from '@/core/analysis/analyze';
+import type { ReactNode } from 'react';
 import {
   describeCause,
   describeEasingFit,
@@ -7,30 +6,20 @@ import {
   formatDuration,
   formatPropertyChange,
 } from '@/core/analysis/describe';
-import type { EasingFit, MotionSegment } from '@/core/analysis/types';
-import { createCapture } from '@/core/capture';
+import type { EasingFit, InteractionAnalysis, MotionSegment } from '@/core/analysis/types';
 import { formatNumber } from '@/core/css-values';
-import type { ElementSnapshot } from '@/core/element-snapshot';
-import type { Recording } from '@/core/recording';
 import { overallEasing } from '@/core/recording-evidence';
 
 const MAX_SEGMENTS = 8;
 
-interface AnalysisCardProps {
-  hostname: string;
-  snapshot: ElementSnapshot;
-  recording: Recording;
-}
-
 /** What the recording means: the trigger, each motion, and any stagger, with every line labeled. */
-export function AnalysisCard({ hostname, snapshot, recording }: AnalysisCardProps) {
-  const analysis = useMemo(
-    () =>
-      analyzeCapture(createCapture({ hostname, extensionVersion: '', snapshot, recording, exportedAt: new Date(0) })),
-    [hostname, snapshot, recording],
-  );
-  const segments = analysis.segments.slice(0, MAX_SEGMENTS);
-  const hidden = analysis.segments.length - segments.length;
+export function AnalysisCard({ analysis }: { analysis: InteractionAnalysis }) {
+  const { stagger } = analysis;
+  // Staggered elements all move the same way, so they're shown once, as a group, instead of one block each.
+  const staggered = stagger ? analysis.segments.filter((segment) => stagger.elements.includes(segment.element) && !segment.instant) : [];
+  const others = analysis.segments.filter((segment) => !staggered.includes(segment));
+  const segments = others.slice(0, MAX_SEGMENTS);
+  const hidden = others.length - segments.length;
 
   return (
     <article className="rounded-lg border border-neutral-200 px-3 py-2.5 dark:border-neutral-800">
@@ -38,9 +27,9 @@ export function AnalysisCard({ hostname, snapshot, recording }: AnalysisCardProp
       <p className="mt-1 text-sm text-neutral-800 dark:text-neutral-200">{analysis.headline}</p>
 
       {analysis.scrollLinks.map((link) => (
-        <Block key={`link-${link.element}`} title={`${capitalize(link.subject)} · follows the scroll`}>
+        <Block key={`link-${link.element}`} title={`${sentenceSubject(link.subject)} · follows the scroll`}>
           <Line label="Measured">
-            {capitalize(link.subject)} {describeScrollLink(link)}.
+            {sentenceSubject(link.subject)} {describeScrollLink(link)}.
           </Line>
           {link.mechanism === 'scroll-driven-animation' && link.animation && (
             <Line label="Observed">Driven by a scroll-driven CSS animation ("{link.animation.name}").</Line>
@@ -51,13 +40,16 @@ export function AnalysisCard({ hostname, snapshot, recording }: AnalysisCardProp
         </Block>
       ))}
 
-      {analysis.stagger && (
-        <Block title="Stagger">
-          <Line label={analysis.stagger.certainty === 'observed' ? 'Observed' : 'Measured'}>
-            {analysis.stagger.count} inner elements start {analysis.stagger.intervalMs} ms apart,{' '}
-            {analysis.stagger.order === 'forward' ? 'in page order' : 'last one first'}.
-          </Line>
-        </Block>
+      {stagger && staggered[0] && (
+        <SegmentBlock
+          segment={staggered[0]}
+          title={`${stagger.count} × ${stagger.subjects[0] ?? 'item'} · ${timeRange(staggered[0].start, Math.max(...staggered.map((segment) => segment.end)))}`}
+          intro={
+            <Line label={stagger.certainty === 'observed' ? 'Observed' : 'Measured'}>
+              Staggered: they start {stagger.intervalMs} ms apart, {stagger.order === 'forward' ? 'in page order' : 'last one first'}. Each one:
+            </Line>
+          }
+        />
       )}
 
       {segments.map((segment, index) => (
@@ -80,15 +72,13 @@ export function AnalysisCard({ hostname, snapshot, recording }: AnalysisCardProp
   );
 }
 
-function SegmentBlock({ segment }: { segment: MotionSegment }) {
+function SegmentBlock({ segment, title, intro }: { segment: MotionSegment; title?: string; intro?: ReactNode }) {
   const { animation } = segment.cause;
-  const range =
-    segment.instant || segment.start === segment.end
-      ? `at ${formatNumber(segment.start / 1000, 2)} s`
-      : `${formatNumber(segment.start / 1000, 2)}–${formatNumber(segment.end / 1000, 2)} s`;
+  const range = segment.instant ? timeRange(segment.start, segment.start) : timeRange(segment.start, segment.end);
 
   return (
-    <Block title={`${capitalize(segment.subject)} · ${range}`}>
+    <Block title={title ?? `${sentenceSubject(segment.subject)} · ${range}`}>
+      {intro}
       <Line label="Estimated" note={`${segment.cause.confidence} confidence`}>
         {describeCause(segment.cause)}
       </Line>
@@ -159,6 +149,13 @@ function Line({
   );
 }
 
-function capitalize(text: string): string {
-  return text.charAt(0).toUpperCase() + text.slice(1);
+/** "the element" starts a sentence as "The element"; element names like `li` keep their case. */
+function sentenceSubject(subject: string): string {
+  return subject === 'the element' ? 'The element' : subject;
+}
+
+function timeRange(start: number, end: number): string {
+  const from = formatNumber(start / 1000, 2);
+  const to = formatNumber(end / 1000, 2);
+  return from === to ? `at ${from} s` : `${from}–${to} s`;
 }

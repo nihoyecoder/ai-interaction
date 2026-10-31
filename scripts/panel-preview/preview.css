@@ -1,0 +1,6 @@
+/* Same as src/panel/styles.css, but the preview is built from this folder, so Tailwind is told where the panel's classes are. */
+@import 'tailwindcss' source('../../src');
+
+:root {
+  color-scheme: light dark;
+}

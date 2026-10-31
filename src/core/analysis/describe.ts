@@ -128,9 +128,12 @@ export function formatPropertyChange(change: PropertyChange): string {
   const unit = UNITS[property];
   let text = `${LABELS[property]} ${value(property, from)} → ${value(property, to)}${unit}`;
   const tolerance = TOLERANCE[property];
-  if (max > Math.max(from, to) + tolerance || min < Math.min(from, to) - tolerance) {
-    text += ` (reaches ${value(property, min)} to ${value(property, max)}${unit} on the way)`;
-  }
+  const rising = to >= from;
+  // Going past the end value is an overshoot; going the other way first is a wind-up.
+  const overshoot = rising ? max > to + tolerance : min < to - tolerance;
+  const windUp = rising ? min < from - tolerance : max > from + tolerance;
+  if (overshoot) text += ` (overshoots to ${value(property, rising ? max : min)}${unit} on the way)`;
+  if (windUp) text += ` (first goes back to ${value(property, rising ? min : max)}${unit})`;
   if (change.jumpedFrom !== undefined) text += `, jumps there from ${value(property, change.jumpedFrom)} first`;
   if (change.jumpedTo !== undefined) text += `, then jumps to ${value(property, change.jumpedTo)}`;
   return text;
