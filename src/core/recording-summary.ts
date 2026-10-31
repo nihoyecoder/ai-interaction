@@ -44,9 +44,8 @@ export function summarizeRecording(recording: Recording): RecordingSummary {
  * For each tracked element, the times (ms) of samples where it changed on its
  * own, not counting page scrolling. Index 0 is the selected element.
  */
-export function changeTimesByElement(recording: Recording): number[][] {
-  const pageScroll = recording.scroll.filter((sample) => sample.area === -1);
-  const scrollAt = (t: number) => latestAt(pageScroll, t);
+export function changeTimesByElement(recording: Pick<Recording, 'elements' | 'samples' | 'scroll'>): number[][] {
+  const scrollAt = createScrollLookup(recording.scroll);
   const changeTimes: number[][] = recording.elements.map(() => []);
   const previous = new Map<number, ElementSample>();
   for (const sample of recording.samples) {
@@ -65,7 +64,7 @@ export function changeTimesByElement(recording: Recording): number[][] {
  * explained by page scrolling: normal elements move by minus the scroll
  * distance, and fixed or sticky ones don't move at all.
  */
-function changedOnItsOwn(
+export function changedOnItsOwn(
   before: ElementSample,
   after: ElementSample,
   scrollBefore: { x: number; y: number },
@@ -79,6 +78,12 @@ function changedOnItsOwn(
   const stayedPut = isNear(dx, 0) && isNear(dy, 0);
   const followedScroll = isNear(dx, -(scrollAfter.x - scrollBefore.x)) && isNear(dy, -(scrollAfter.y - scrollBefore.y));
   return !stayedPut && !followedScroll;
+}
+
+/** The page's scroll position at any moment of the recording. */
+export function createScrollLookup(scroll: readonly ScrollSample[]): (t: number) => { x: number; y: number } {
+  const pageScroll = scroll.filter((sample) => sample.area === -1);
+  return (t) => latestAt(pageScroll, t);
 }
 
 /** The most recent sample at or before `t`. Samples are in time order. */

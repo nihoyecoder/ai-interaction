@@ -1,4 +1,5 @@
 import type { ElementSnapshot } from './element-snapshot';
+import { formatElementName } from './element-summary';
 import type { Recording } from './recording';
 import { describeEvidence, type EvidenceLine } from './recording-evidence';
 import { summarizeRecording, type RecordingSummary } from './recording-summary';
@@ -72,9 +73,16 @@ export function createCapture(input: {
   };
 }
 
-/** For example "ai-interaction-dribbble.com-2026-10-31-1905.json". */
+/** For example "ai-interaction-dribbble.com-div.card-2026-10-31-190512.json". */
 export function captureFileName(capture: Capture): string {
-  const host = capture.page.hostname.toLowerCase().replace(/[^a-z0-9.-]+/g, '-') || 'page';
-  const stamp = capture.exportedAt.slice(0, 16).replace('T', '-').replace(':', '');
-  return `ai-interaction-${host}-${stamp}.json`;
+  const safe = (text: string) =>
+    text
+      .toLowerCase()
+      .replace(/[^a-z0-9.-]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 40);
+  const host = safe(capture.page.hostname) || 'page';
+  const element = safe(formatElementName(capture.observed.element.element)) || 'element';
+  const stamp = capture.exportedAt.slice(0, 19).replace('T', '-').replaceAll(':', '');
+  return `ai-interaction-${host}-${element}-${stamp}.json`;
 }

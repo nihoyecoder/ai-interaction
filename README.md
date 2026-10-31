@@ -48,6 +48,7 @@ Notes:
 | `npm run compile` | Runs the TypeScript type check |
 | `npm test` | Runs the unit tests |
 | `npm run fixtures` | Serves the local test pages at http://127.0.0.1:5174 |
+| `npm run golden:record` | Re-records the real test captures in hidden Chrome, for the analysis tests |
 
 ## Test pages
 

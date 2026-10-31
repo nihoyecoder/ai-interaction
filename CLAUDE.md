@@ -12,7 +12,11 @@ A Chrome (Manifest V3) extension that captures a web interaction from a live pag
 - **M2.2 (element details card) is done.** The user verified it in Chrome against `fixtures/style-snapshot.html` (all expected values matched). Phase 2 is complete.
 - **M3.1 (recorder) is done.** The user verified it in Chrome against `fixtures/recording.html`, including the auto-stop and leaving the tab.
 - **M3.2 (animation evidence) is done.** The user verified it in Chrome against `fixtures/recording.html` (sections 1–4 and 6).
-- **M3.3 (evidence package, timeline, export) is done.** The user verified it in Chrome (no screenshot of the timeline yet). **Phase 3 is complete. Next: M4, analysis.** Its plan needs to be agreed before any code is written.
+- **M3.3 (evidence package, timeline, export) is done.** The user verified it in Chrome (no screenshot of the timeline yet). Phase 3 is complete.
+- Product decisions for Phase 4:
+  - It's split into **M4.1** (trigger, motion, stagger) and **M4.2** (easing fit).
+  - The user's exported captures from the test pages become golden tests in `fixtures/captures/`.
+- **M4.1 (analysis: trigger, motion, stagger) is done.** It's verified on **real Chrome recordings, made automatically** (`npm run golden:record`, 7 golden tests, stable across 3 fresh recordings). The user asked for this automation instead of testing by hand. **Not yet seen by a person:** the Analysis card's layout in the panel, and the Download JSON button (its M3.3 check may also have been skipped). Ask the user to glance at both during the next manual test. **Next: M4.2, easing fit.** Its plan needs to be agreed before any code is written.
 - The current side panel UI is a functional placeholder. The user will set the visual direction (design tokens) when the real screens are built, starting in M2.
 - Update this section and the roadmap checkboxes whenever a milestone is completed.
 
@@ -36,7 +40,12 @@ A Chrome (Manifest V3) extension that captures a web interaction from a live pag
 - **npm** is the package manager. Every version is pinned exactly (`.npmrc` sets `save-exact=true`), and `package-lock.json` is committed.
 - **WXT auto-imports are off** (`imports: false`). Import WXT APIs explicitly from `'#imports'`, e.g. `import { browser, defineBackground } from '#imports'`. The path alias `@/` points to `src/`.
 - `web-ext` is a dev dependency. `npm run dev` uses it to open Chrome through Chrome's DevTools protocol (`Extensions.loadUnpacked`).
-- `npm audit` reports a known low-severity `deepmerge` advisory inside `web-ext`'s dev-only dependency chain. **Don't run `npm audit fix --force`**, because it downgrades `web-ext` to an ancient version.
+- `npm audit` reports known advisories in dev-only tooling, none of which ships in the extension:
+  - low severity: `deepmerge`, inside `web-ext`
+  - moderate severity: `minimatch`, inside the ESLint packages that come with `wxt` and `web-ext`
+
+  **Don't run `npm audit fix --force`**, because it downgrades core tools.
+- `puppeteer-core` is a dev dependency, used only by `scripts/golden/` to drive the installed Chrome. It downloads no browser.
 
 ## Architecture
 
@@ -120,6 +129,38 @@ So the per-site permission fallback isn't needed.
     - tooltips on hover and on keyboard focus
     - a "Timeline as a list" view, because light-mode green is below 3:1 contrast
   - Export (`ExportControls.tsx`) offers Copy JSON (clipboard) and Download JSON (a blob link). It needs no permissions.
+- **Analysis (M4.1)**, in `src/core/analysis/`. `analyzeCapture(capture)` is a pure function of the capture.
+  - **Segments** (`segments.ts`): each element's changed frames, using `changedOnItsOwn`, split wherever there's a gap of more than 100 ms. "From" is the resting state just before the first changed frame.
+  - **Values** (`values.ts`): changes are read from decoded transforms and opacity. Box movement and resizing count only when no transform changed, because transforms move the box too. Positions are in page coordinates.
+  - **Instant jumps** at the start (a delayed CSS animation applying its first keyframe) and at the end (a script resetting the element) are detected when one step is more than 4× the next. They're reported as `jumpedFrom` and `jumpedTo`.
+  - **Followers:** inner elements whose only change is box movement, at the same time as a shallower element's transform, size change, or scroll link, are counted rather than listed.
+  - An instant segment explained by the same animation as a later motion is dropped. It's that animation's first keyframe.
+  - **Causes** (`causes.ts`): look back from the moment Chrome created the explaining animation, or from the first changed frame if there's none.
+    - The chain is: user action (hover start or end, press, click, viewport entry), then optionally a class change on the element or the selected root, then the motion.
+    - Windows: 300 ms for actions, 1000 ms for viewport entries.
+    - Without any action, the trigger is "scroll" if the page scrolled within 150 ms, otherwise "none".
+    - Triggers are always **Estimated**, with a confidence: high when the action is within about 50 ms and the mechanism is known.
+  - **Mechanism:** the explaining animation's kind (Observed). Otherwise "javascript" when the element's inline style changed (Estimated). Otherwise "unknown".
+  - **Scroll links** (`scroll-links.ts`) need all of the following:
+    - at least 6 samples and at least 30 px of scrolling
+    - 90% of the changes happening in frames where the page scrolled
+    - a correlation of at least 0.95 with the scroll position (0.8 for scroll-driven CSS animations)
+    - no time-based animation from Chrome on that element
+
+    A scroll-linked element's segments aren't listed separately.
+  - **Stagger** (`stagger.ts`) requires at least 3 siblings, taken from the depth with the most moving elements. It uses observed `animation.t + delay` when available, otherwise measured starts. Gaps must be steady: at most 15% of the median, or 5 ms for observed and 2 frames for measured.
+  - `describe.ts` holds all wording: the headline, causes, and property changes. The UI is `AnalysisCard.tsx`, above the recording card.
+  - `decodeTransform` also decodes a flat `matrix3d` (GSAP's `translate3d(x, y, 0)`).
+  - Hover and viewport changes are only noticed at the next frame, while presses carry exact event times. So when choosing the most recent action, hover and viewport times are moved back by one frame, and a click wins a tie. A real recording caught this: a quick move-and-click was read as a hover.
+- **Golden tests: real recordings.**
+  - `npm run golden:record` (`scripts/golden/record-captures.mjs`):
+    - bundles `scripts/golden/harness-entry.ts`, which is the real snapshot, recorder, and capture code
+    - opens `fixtures/recording.html` in headless installed Chrome through `puppeteer-core`
+    - performs each interaction with real mouse, click, and wheel input
+    - writes `fixtures/captures/*.json`
+  - `src/core/analysis/golden.test.ts` checks meanings, not exact milliseconds, so re-recording doesn't break it.
+  - **Re-record and re-run the tests after changing the recorder or the analysis.** When adding an interaction type, add a fixture section, a scenario, and a golden test.
+  - The harness skips the side panel and the extension shell. Those still need a person in Chrome.
 - `src/core` must not use extension APIs or the live DOM, so it stays unit-testable.
 - Entrypoint files in `src/entrypoints/` stay thin. The real logic lives in feature folders.
 - Main-world scripts (code that reads page JavaScript such as `window.gsap`) come later and need a deliberate decision. They must be read-only and minimal, and their output is treated as untrusted.
@@ -134,7 +175,7 @@ src/
     inspector.ts    unlisted script; injected on demand, never in the manifest
   panel/            side panel React UI: screens/, components/, hooks/, session/, panel-view.ts
   inspector/        runs inside the web page (plain TS): overlay, picker, snapshot, recorder/
-  core/             pure logic + tests: evidence types, privacy, analysis/, recipe/
+  core/             pure logic + tests: evidence, capture, timeline, analysis/ (M4), recipe/ (M5)
   messaging/        typed message contracts shared by panel + inspector
   storage/          chrome.storage wrappers (settings, recent captures)
 fixtures/           local test pages with known values, each listing what the extension should report (`npm run fixtures`)
@@ -199,6 +240,7 @@ Run these from the repo root:
 - `npm run compile` runs the TypeScript type check.
 - `npm test` runs the unit tests (Vitest).
 - `npm run fixtures` serves `fixtures/` at http://127.0.0.1:5174 (local only). Run it in a second terminal next to `npm run dev`.
+- `npm run golden:record` re-records `fixtures/captures/*.json` in headless Chrome (no window). Pass scenario names to record only some of them, e.g. `npm run golden:record -- toggle reveal`.
 - After adding or renaming an entrypoint, run `npx wxt prepare` to regenerate WXT's types, such as the list of valid script paths.
 - `npm run zip` creates the Chrome Web Store package.
 
@@ -211,7 +253,8 @@ Run these from the repo root:
 - [x] **M3.1** Recorder: start and stop with a time cap, plus event telemetry and frame sampling of geometry, transform, and opacity.
 - [x] **M3.2** Animation evidence: `getAnimations()`, transition and animation events, and class and style mutations.
 - [x] **M3.3** Evidence model plus a simple timeline view and a JSON export for debugging.
-- [ ] **M4** Analysis in `core` (triggers, timing, easing fit, stagger), unit-tested against `fixtures/`.
+- [x] **M4.1** Analysis in `core`: trigger, motion segments, scroll links, stagger. Golden-tested on real Chrome recordings.
+- [ ] **M4.2** Easing fit for measured (JavaScript-driven) motion.
 - [ ] **M5.1** Deterministic recipe, copyable, for one narrow target stack.
 - [ ] **M5.2** Compare our recipe with a plain "recording + prompt" baseline. Then decide whether an AI step adds value.
 - [ ] **M5.3** (Only if M5.2 justifies it) AI-enhanced recipe through a secure backend.

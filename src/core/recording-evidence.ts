@@ -92,7 +92,7 @@ export function formatAnimationRecord(record: AnimationRecord): string {
  * CSS animations apply their timing function per keyframe, so the effect itself
  * reports "linear". In that case the first keyframe's easing is the meaningful one.
  */
-function overallEasing(record: AnimationRecord): string {
+export function overallEasing(record: AnimationRecord): string {
   if (record.easing !== 'linear') return record.easing;
   return record.keyframes.find((keyframe) => keyframe.easing !== 'linear')?.easing ?? 'linear';
 }

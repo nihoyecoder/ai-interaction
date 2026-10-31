@@ -1,0 +1,384 @@
+{
+  "format": "ai-interaction/capture",
+  "version": 1,
+  "exportedAt": "2026-10-31T14:58:20.235Z",
+  "extensionVersion": "golden-harness",
+  "page": {
+    "hostname": "127.0.0.1"
+  },
+  "labels": {
+    "observed": "Read directly from the browser: computed styles, Chrome’s animation list, and DOM changes.",
+    "measured": "Measured by sampling the page while recording: positions, sizes, transforms, and timing.",
+    "estimated": "Inferred from what was observed or measured. Treat as a likely explanation, not a fact."
+  },
+  "observed": {
+    "element": {
+      "element": {
+        "tag": "button",
+        "id": null,
+        "classes": [
+          "toggle"
+        ],
+        "width": 105,
+        "height": 43
+      },
+      "namespace": "html",
+      "layoutSize": {
+        "width": 105,
+        "height": 43
+      },
+      "position": {
+        "x": 364,
+        "y": 816
+      },
+      "path": [
+        {
+          "tag": "html",
+          "id": null,
+          "classes": []
+        },
+        {
+          "tag": "body",
+          "id": null,
+          "classes": []
+        },
+        {
+          "tag": "section",
+          "id": null,
+          "classes": [
+            "item"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": null,
+          "classes": [
+            "demo"
+          ]
+        }
+      ],
+      "styles": {
+        "display": "block",
+        "position": "static",
+        "overflow-x": "visible",
+        "overflow-y": "visible",
+        "z-index": "auto",
+        "transform": "none",
+        "translate": "none",
+        "rotate": "none",
+        "scale": "none",
+        "transform-origin": "52.6016px 21.25px",
+        "perspective": "none",
+        "opacity": "1",
+        "filter": "none",
+        "clip-path": "none",
+        "border-top-left-radius": "999px",
+        "border-top-right-radius": "999px",
+        "border-bottom-right-radius": "999px",
+        "border-bottom-left-radius": "999px",
+        "transition-property": "transform",
+        "transition-duration": "0.2s",
+        "transition-timing-function": "ease",
+        "transition-delay": "0s",
+        "animation-name": "none",
+        "animation-duration": "0s",
+        "animation-timing-function": "ease",
+        "animation-delay": "0s",
+        "animation-iteration-count": "1",
+        "animation-direction": "normal",
+        "animation-fill-mode": "none",
+        "animation-play-state": "running",
+        "animation-timeline": "auto"
+      },
+      "defaultsKey": {
+        "type": "button",
+        "open": false
+      },
+      "hovered": false,
+      "canSelectParent": true,
+      "canSelectChild": false
+    },
+    "animations": [
+      {
+        "t": 313.5,
+        "runningAtStart": false,
+        "element": 0,
+        "target": {
+          "tag": "button",
+          "id": null,
+          "classes": [
+            "toggle",
+            "is-on"
+          ]
+        },
+        "kind": "css-transition",
+        "name": "transform",
+        "pseudo": null,
+        "durationMs": 200,
+        "delayMs": 0,
+        "easing": "ease",
+        "iterations": 1,
+        "direction": "normal",
+        "fill": "backwards",
+        "scrollDriven": false,
+        "keyframes": [
+          {
+            "offset": 0,
+            "easing": "linear",
+            "values": {
+              "transform": "none"
+            }
+          },
+          {
+            "offset": 1,
+            "easing": "linear",
+            "values": {
+              "transform": "translateX(40px)"
+            }
+          }
+        ]
+      }
+    ],
+    "classChanges": [
+      {
+        "t": 314.1,
+        "element": 0,
+        "target": {
+          "tag": "button",
+          "id": null,
+          "classes": [
+            "toggle",
+            "is-on"
+          ]
+        },
+        "added": [
+          "is-on"
+        ],
+        "removed": []
+      }
+    ],
+    "attributeChanges": [],
+    "styleWrites": []
+  },
+  "measured": {
+    "recording": {
+      "durationMs": 1017.7,
+      "frameCount": 62,
+      "stopReason": "user",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "elements": [
+        {
+          "name": {
+            "tag": "button",
+            "id": null,
+            "classes": [
+              "toggle",
+              "is-on"
+            ]
+          },
+          "depth": 0
+        }
+      ],
+      "scrollAreas": [],
+      "samples": [
+        {
+          "t": 0,
+          "element": 0,
+          "x": 364.39,
+          "y": 428.75,
+          "width": 105.2,
+          "height": 42.5,
+          "transform": "none",
+          "opacity": 1
+        },
+        {
+          "t": 313.5,
+          "element": 0,
+          "x": 364.39,
+          "y": 428.75,
+          "width": 105.2,
+          "height": 42.5,
+          "transform": "matrix(1, 0, 0, 1, 0, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 330.3,
+          "element": 0,
+          "x": 367.24,
+          "y": 428.75,
+          "width": 105.2,
+          "height": 42.5,
+          "transform": "matrix(1, 0, 0, 1, 2.85431, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 346.9,
+          "element": 0,
+          "x": 373.22,
+          "y": 428.75,
+          "width": 105.2,
+          "height": 42.5,
+          "transform": "matrix(1, 0, 0, 1, 8.83374, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 363.6,
+          "element": 0,
+          "x": 380.75,
+          "y": 428.75,
+          "width": 105.2,
+          "height": 42.5,
+          "transform": "matrix(1, 0, 0, 1, 16.3621, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 380.2,
+          "element": 0,
+          "x": 387.42,
+          "y": 428.75,
+          "width": 105.2,
+          "height": 42.5,
+          "transform": "matrix(1, 0, 0, 1, 23.0282, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 396.9,
+          "element": 0,
+          "x": 392.62,
+          "y": 428.75,
+          "width": 105.2,
+          "height": 42.5,
+          "transform": "matrix(1, 0, 0, 1, 28.2287, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 413.7,
+          "element": 0,
+          "x": 396.52,
+          "y": 428.75,
+          "width": 105.2,
+          "height": 42.5,
+          "transform": "matrix(1, 0, 0, 1, 32.1257, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 430.3,
+          "element": 0,
+          "x": 399.34,
+          "y": 428.75,
+          "width": 105.2,
+          "height": 42.5,
+          "transform": "matrix(1, 0, 0, 1, 34.9535, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 447.1,
+          "element": 0,
+          "x": 401.41,
+          "y": 428.75,
+          "width": 105.2,
+          "height": 42.5,
+          "transform": "matrix(1, 0, 0, 1, 37.0151, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 463.8,
+          "element": 0,
+          "x": 402.83,
+          "y": 428.75,
+          "width": 105.2,
+          "height": 42.5,
+          "transform": "matrix(1, 0, 0, 1, 38.4356, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 480.5,
+          "element": 0,
+          "x": 403.74,
+          "y": 428.75,
+          "width": 105.2,
+          "height": 42.5,
+          "transform": "matrix(1, 0, 0, 1, 39.3508, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 497.1,
+          "element": 0,
+          "x": 404.24,
+          "y": 428.75,
+          "width": 105.2,
+          "height": 42.5,
+          "transform": "matrix(1, 0, 0, 1, 39.848, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 513.9,
+          "element": 0,
+          "x": 404.39,
+          "y": 428.75,
+          "width": 105.2,
+          "height": 42.5,
+          "transform": "matrix(1, 0, 0, 1, 40, 0)",
+          "opacity": 1
+        }
+      ],
+      "pointer": [
+        {
+          "t": 313.5,
+          "x": 417,
+          "y": 450
+        }
+      ],
+      "scroll": [
+        {
+          "t": 0,
+          "area": -1,
+          "x": 0,
+          "y": 387
+        }
+      ],
+      "startHovered": false,
+      "hover": [
+        {
+          "t": 313.5,
+          "hovered": true
+        }
+      ],
+      "presses": [
+        {
+          "t": 312.3,
+          "type": "press",
+          "x": 417,
+          "y": 450,
+          "onElement": true
+        },
+        {
+          "t": 312.7,
+          "type": "release",
+          "x": 417,
+          "y": 450,
+          "onElement": true
+        }
+      ]
+    },
+    "summary": {
+      "durationMs": 1017.7,
+      "frameCount": 62,
+      "stopReason": "user",
+      "elementChange": {
+        "from": 313.5,
+        "to": 513.9
+      },
+      "changedDescendants": 0,
+      "trackedDescendants": 0,
+      "pageScrollPx": 0,
+      "scrolledAreas": 0,
+      "clicks": 1,
+      "hoverEnters": 1
+    }
+  },
+  "estimated": []
+}

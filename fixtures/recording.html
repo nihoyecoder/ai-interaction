@@ -59,6 +59,30 @@
         height: 80vh;
       }
 
+      /* 6. Reveal on scroll */
+      .reveal-space {
+        height: 110vh;
+      }
+      .reveal {
+        width: 200px;
+        height: 80px;
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+        color: #fff;
+        font-size: 13px;
+        background: #14b8a6;
+        opacity: 0;
+        transform: translateY(24px);
+        transition:
+          opacity 0.6s ease-out,
+          transform 0.6s ease-out;
+      }
+      .reveal.is-visible {
+        opacity: 1;
+        transform: none;
+      }
+
       /* 1. Hover card */
       .hover-card {
         width: 220px;
@@ -199,7 +223,10 @@
 2 of 2 tracked inner elements changed (they move with the card)
 You hovered the element 1× (no scrolling or clicks)
 Evidence: CSS transition: transform · 300 ms · ease-out · started at A s
-          (and a second one when you moved off)</p>
+          (and a second one when you moved off)
+Analysis: When the pointer enters, the element moves up 8 px and scales to 1.04
+          over 300 ms. It returns when the pointer leaves.
+          2 inner elements only move along with the element around them.</p>
     </section>
 
     <section class="item">
@@ -210,7 +237,9 @@ Evidence: CSS transition: transform · 300 ms · ease-out · started at A s
 The element changed between about A s and A + 0.2 s
 You clicked 1× and hovered the element 1×
 Evidence: Class "is-on" added at A s
-          CSS transition: transform · 200 ms · ease · started at A s</p>
+          CSS transition: transform · 200 ms · ease · started at A s
+Analysis: On click, the element moves right 40 px over 200 ms.
+          Cause: On click, the page adds class "is-on", which starts a CSS transition.</p>
     </section>
 
     <section class="item">
@@ -226,7 +255,10 @@ Evidence: Class "is-on" added at A s
       <p class="expected">Orange: The element didn't change on its own. You scrolled the page … px
         Evidence: "No CSS animations, class changes, or inline-style changes were seen."
 Blue:   The element changed between … (it moves as you scroll). You scrolled the page … px
-        Evidence: CSS animation: drift · auto · linear · scroll-driven · already running</p>
+        Evidence: CSS animation: drift · auto · linear · scroll-driven · already running
+Analysis: Orange: "Nothing moved on its own during the recording."
+          Blue:   "As the page scrolls, the element moves up … px per 100 px scrolled."
+                  (about 8, depending on your window height)</p>
     </section>
 
     <section class="item">
@@ -250,11 +282,14 @@ Blue:   The element changed between … (it moves as you scroll). You scrolled t
 You clicked 1×
 Evidence: Class "is-playing" added at A s
           CSS animation: pop · 500 ms · ease-out · started at A s on li
-          …four more, with delay 100 ms, 200 ms, 300 ms, and 400 ms</p>
+          …four more, with delay 100 ms, 200 ms, 300 ms, and 400 ms
+Analysis: On click, 5 inner elements animate one after another, 100 ms apart.
+          Stagger: 5 inner elements start 100 ms apart, in page order. [Observed]
+          Each li: translateY 16 → 0 px, opacity 0.25 → 1, 500 ms, ease-out</p>
     </section>
 
     <section class="item">
-      <h2>6. JavaScript animation</h2>
+      <h2>5. JavaScript animation</h2>
       <p class="steps">
         Select the purple box. Click Record, click "Animate" (the box slides for one second), wait, then click Stop.
       </p>
@@ -265,11 +300,28 @@ Evidence: Class "is-playing" added at A s
       <p class="expected">The element changed between about A s and A + 1 s
 Evidence: Inline styles changed about 60 times on 1 element, which usually
           means JavaScript is animating it.  [Estimated]
-          (No CSS transition or animation: this one is pure JavaScript.)</p>
+          (No CSS transition or animation: this one is pure JavaScript.)
+Analysis: On click, the element moves right 120 px over about 1 s.
+          Cause: On click, JavaScript animates it by changing its inline style.
+          translateX 0 → 120 px, then jumps to 0 (the script resets it)</p>
     </section>
 
     <section class="item">
-      <h2>5. Limits</h2>
+      <h2>6. Reveal on scroll</h2>
+      <p class="steps">
+        Scroll down until the teal box below fades in, and select it. Scroll back up until the box is out of view (it
+        fades out again). Click Record, scroll down slowly until it fades in, wait a second, then click Stop.
+      </p>
+      <div class="reveal-space"></div>
+      <div class="demo"><div class="reveal">Reveal</div></div>
+      <p class="expected">Analysis: When it scrolls into view, the element moves up 24 px and fades in
+          (opacity 0 → 1) over 600 ms.
+          Cause: When it scrolls into view, the page adds class "is-visible",
+          which starts a CSS transition.</p>
+    </section>
+
+    <section class="item">
+      <h2>7. Limits</h2>
       <p class="steps">
         Select anything and click Record, then do nothing. It should stop by itself after 10 seconds. Record again,
         switch to another tab, and come back.
@@ -297,12 +349,16 @@ Second: "Stopped because you left the tab."</p>
         const step = (now) => {
           const progress = Math.min((now - start) / 1000, 1);
           const eased = 1 - (1 - progress) ** 3;
-          box.style.transform = `translateX(${Math.round(eased * 120)}px)`;
+          box.style.transform = `translateX(${eased * 120}px)`;
           if (progress < 1) requestAnimationFrame(step);
           else requestAnimationFrame(() => (box.style.transform = ''));
         };
         requestAnimationFrame(step);
       });
+      // Reveal on scroll: the page adds a class when the box enters the viewport, and removes it when it leaves.
+      new IntersectionObserver((entries) => {
+        for (const entry of entries) entry.target.classList.toggle('is-visible', entry.isIntersecting);
+      }).observe(document.querySelector('.reveal'));
     </script>
   </body>
 </html>

@@ -1,0 +1,369 @@
+{
+  "format": "ai-interaction/capture",
+  "version": 1,
+  "exportedAt": "2026-10-31T14:58:23.517Z",
+  "extensionVersion": "golden-harness",
+  "page": {
+    "hostname": "127.0.0.1"
+  },
+  "labels": {
+    "observed": "Read directly from the browser: computed styles, Chrome’s animation list, and DOM changes.",
+    "measured": "Measured by sampling the page while recording: positions, sizes, transforms, and timing.",
+    "estimated": "Inferred from what was observed or measured. Treat as a likely explanation, not a fact."
+  },
+  "observed": {
+    "element": {
+      "element": {
+        "tag": "div",
+        "id": null,
+        "classes": [
+          "scroll-block"
+        ],
+        "width": 200,
+        "height": 80
+      },
+      "namespace": "html",
+      "layoutSize": {
+        "width": 200,
+        "height": 80
+      },
+      "position": {
+        "x": 429,
+        "y": 1297
+      },
+      "path": [
+        {
+          "tag": "html",
+          "id": null,
+          "classes": []
+        },
+        {
+          "tag": "body",
+          "id": null,
+          "classes": []
+        },
+        {
+          "tag": "section",
+          "id": null,
+          "classes": [
+            "item"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": null,
+          "classes": [
+            "demo"
+          ]
+        }
+      ],
+      "styles": {
+        "display": "grid",
+        "position": "static",
+        "overflow-x": "visible",
+        "overflow-y": "visible",
+        "z-index": "auto",
+        "transform": "matrix(1, 0, 0, 1, 0, -3.28061)",
+        "translate": "none",
+        "rotate": "none",
+        "scale": "none",
+        "transform-origin": "100px 40px",
+        "perspective": "none",
+        "opacity": "1",
+        "filter": "none",
+        "clip-path": "none",
+        "border-top-left-radius": "10px",
+        "border-top-right-radius": "10px",
+        "border-bottom-right-radius": "10px",
+        "border-bottom-left-radius": "10px",
+        "transition-property": "all",
+        "transition-duration": "0s",
+        "transition-timing-function": "ease",
+        "transition-delay": "0s",
+        "animation-name": "drift",
+        "animation-duration": "auto",
+        "animation-timing-function": "linear",
+        "animation-delay": "0s",
+        "animation-iteration-count": "1",
+        "animation-direction": "normal",
+        "animation-fill-mode": "both",
+        "animation-play-state": "running",
+        "animation-timeline": "view()"
+      },
+      "defaultsKey": {
+        "type": null,
+        "open": false
+      },
+      "hovered": false,
+      "canSelectParent": true,
+      "canSelectChild": false
+    },
+    "animations": [
+      {
+        "t": 0,
+        "runningAtStart": true,
+        "element": 0,
+        "target": {
+          "tag": "div",
+          "id": null,
+          "classes": [
+            "scroll-block"
+          ]
+        },
+        "kind": "css-animation",
+        "name": "drift",
+        "pseudo": null,
+        "durationMs": null,
+        "delayMs": 0,
+        "easing": "linear",
+        "iterations": 1,
+        "direction": "normal",
+        "fill": "both",
+        "scrollDriven": true,
+        "keyframes": [
+          {
+            "offset": 0,
+            "easing": "linear",
+            "values": {
+              "transform": "translateY(40px)"
+            }
+          },
+          {
+            "offset": 1,
+            "easing": "linear",
+            "values": {
+              "transform": "translateY(-40px)"
+            }
+          }
+        ]
+      }
+    ],
+    "classChanges": [],
+    "attributeChanges": [],
+    "styleWrites": []
+  },
+  "measured": {
+    "recording": {
+      "durationMs": 1466.4,
+      "frameCount": 89,
+      "stopReason": "user",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "elements": [
+        {
+          "name": {
+            "tag": "div",
+            "id": null,
+            "classes": [
+              "scroll-block"
+            ]
+          },
+          "depth": 0
+        }
+      ],
+      "scrollAreas": [],
+      "samples": [
+        {
+          "t": 0,
+          "element": 0,
+          "x": 429,
+          "y": 366.53,
+          "width": 200,
+          "height": 80,
+          "transform": "matrix(1, 0, 0, 1, 0, -3.28061)",
+          "opacity": 1
+        },
+        {
+          "t": 246.3,
+          "element": 0,
+          "x": 429,
+          "y": 301.63,
+          "width": 200,
+          "height": 80,
+          "transform": "matrix(1, 0, 0, 1, 0, -8.17857)",
+          "opacity": 1
+        },
+        {
+          "t": 296.6,
+          "element": 0,
+          "x": 429,
+          "y": 236.74,
+          "width": 200,
+          "height": 80,
+          "transform": "matrix(1, 0, 0, 1, 0, -13.0765)",
+          "opacity": 1
+        },
+        {
+          "t": 363.3,
+          "element": 0,
+          "x": 429,
+          "y": 171.84,
+          "width": 200,
+          "height": 80,
+          "transform": "matrix(1, 0, 0, 1, 0, -17.9745)",
+          "opacity": 1
+        },
+        {
+          "t": 413.1,
+          "element": 0,
+          "x": 429,
+          "y": 106.94,
+          "width": 200,
+          "height": 80,
+          "transform": "matrix(1, 0, 0, 1, 0, -22.8724)",
+          "opacity": 1
+        },
+        {
+          "t": 463.1,
+          "element": 0,
+          "x": 429,
+          "y": 42.04,
+          "width": 200,
+          "height": 80,
+          "transform": "matrix(1, 0, 0, 1, 0, -27.7704)",
+          "opacity": 1
+        },
+        {
+          "t": 829.3,
+          "element": 0,
+          "x": 429,
+          "y": 106.94,
+          "width": 200,
+          "height": 80,
+          "transform": "matrix(1, 0, 0, 1, 0, -22.8724)",
+          "opacity": 1
+        },
+        {
+          "t": 879.4,
+          "element": 0,
+          "x": 429,
+          "y": 171.84,
+          "width": 200,
+          "height": 80,
+          "transform": "matrix(1, 0, 0, 1, 0, -17.9745)",
+          "opacity": 1
+        },
+        {
+          "t": 929.4,
+          "element": 0,
+          "x": 429,
+          "y": 236.74,
+          "width": 200,
+          "height": 80,
+          "transform": "matrix(1, 0, 0, 1, 0, -13.0765)",
+          "opacity": 1
+        },
+        {
+          "t": 979.4,
+          "element": 0,
+          "x": 429,
+          "y": 301.63,
+          "width": 200,
+          "height": 80,
+          "transform": "matrix(1, 0, 0, 1, 0, -8.17857)",
+          "opacity": 1
+        },
+        {
+          "t": 1029.6,
+          "element": 0,
+          "x": 429,
+          "y": 366.53,
+          "width": 200,
+          "height": 80,
+          "transform": "matrix(1, 0, 0, 1, 0, -3.28061)",
+          "opacity": 1
+        }
+      ],
+      "pointer": [],
+      "scroll": [
+        {
+          "t": 0,
+          "area": -1,
+          "x": 0,
+          "y": 930
+        },
+        {
+          "t": 246.3,
+          "area": -1,
+          "x": 0,
+          "y": 990
+        },
+        {
+          "t": 296.6,
+          "area": -1,
+          "x": 0,
+          "y": 1050
+        },
+        {
+          "t": 363.3,
+          "area": -1,
+          "x": 0,
+          "y": 1110
+        },
+        {
+          "t": 413.1,
+          "area": -1,
+          "x": 0,
+          "y": 1170
+        },
+        {
+          "t": 463.1,
+          "area": -1,
+          "x": 0,
+          "y": 1230
+        },
+        {
+          "t": 829.3,
+          "area": -1,
+          "x": 0,
+          "y": 1170
+        },
+        {
+          "t": 879.4,
+          "area": -1,
+          "x": 0,
+          "y": 1110
+        },
+        {
+          "t": 929.4,
+          "area": -1,
+          "x": 0,
+          "y": 1050
+        },
+        {
+          "t": 979.4,
+          "area": -1,
+          "x": 0,
+          "y": 990
+        },
+        {
+          "t": 1029.6,
+          "area": -1,
+          "x": 0,
+          "y": 930
+        }
+      ],
+      "startHovered": false,
+      "hover": [],
+      "presses": []
+    },
+    "summary": {
+      "durationMs": 1466.4,
+      "frameCount": 89,
+      "stopReason": "user",
+      "elementChange": {
+        "from": 246.3,
+        "to": 1029.6
+      },
+      "changedDescendants": 0,
+      "trackedDescendants": 0,
+      "pageScrollPx": 600,
+      "scrolledAreas": 0,
+      "clicks": 0,
+      "hoverEnters": 0
+    }
+  },
+  "estimated": []
+}

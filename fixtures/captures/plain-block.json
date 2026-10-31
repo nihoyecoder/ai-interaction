@@ -1,0 +1,327 @@
+{
+  "format": "ai-interaction/capture",
+  "version": 1,
+  "exportedAt": "2026-10-31T14:58:21.902Z",
+  "extensionVersion": "golden-harness",
+  "page": {
+    "hostname": "127.0.0.1"
+  },
+  "labels": {
+    "observed": "Read directly from the browser: computed styles, Chrome’s animation list, and DOM changes.",
+    "measured": "Measured by sampling the page while recording: positions, sizes, transforms, and timing.",
+    "estimated": "Inferred from what was observed or measured. Treat as a likely explanation, not a fact."
+  },
+  "observed": {
+    "element": {
+      "element": {
+        "tag": "div",
+        "id": null,
+        "classes": [
+          "plain-block"
+        ],
+        "width": 200,
+        "height": 80
+      },
+      "namespace": "html",
+      "layoutSize": {
+        "width": 200,
+        "height": 80
+      },
+      "position": {
+        "x": 205,
+        "y": 1300
+      },
+      "path": [
+        {
+          "tag": "html",
+          "id": null,
+          "classes": []
+        },
+        {
+          "tag": "body",
+          "id": null,
+          "classes": []
+        },
+        {
+          "tag": "section",
+          "id": null,
+          "classes": [
+            "item"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": null,
+          "classes": [
+            "demo"
+          ]
+        }
+      ],
+      "styles": {
+        "display": "grid",
+        "position": "static",
+        "overflow-x": "visible",
+        "overflow-y": "visible",
+        "z-index": "auto",
+        "transform": "none",
+        "translate": "none",
+        "rotate": "none",
+        "scale": "none",
+        "transform-origin": "100px 40px",
+        "perspective": "none",
+        "opacity": "1",
+        "filter": "none",
+        "clip-path": "none",
+        "border-top-left-radius": "10px",
+        "border-top-right-radius": "10px",
+        "border-bottom-right-radius": "10px",
+        "border-bottom-left-radius": "10px",
+        "transition-property": "all",
+        "transition-duration": "0s",
+        "transition-timing-function": "ease",
+        "transition-delay": "0s",
+        "animation-name": "none",
+        "animation-duration": "0s",
+        "animation-timing-function": "ease",
+        "animation-delay": "0s",
+        "animation-iteration-count": "1",
+        "animation-direction": "normal",
+        "animation-fill-mode": "none",
+        "animation-play-state": "running",
+        "animation-timeline": "auto"
+      },
+      "defaultsKey": {
+        "type": null,
+        "open": false
+      },
+      "hovered": false,
+      "canSelectParent": true,
+      "canSelectChild": false
+    },
+    "animations": [],
+    "classChanges": [],
+    "attributeChanges": [],
+    "styleWrites": []
+  },
+  "measured": {
+    "recording": {
+      "durationMs": 1535,
+      "frameCount": 93,
+      "stopReason": "user",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "elements": [
+        {
+          "name": {
+            "tag": "div",
+            "id": null,
+            "classes": [
+              "plain-block"
+            ]
+          },
+          "depth": 0
+        }
+      ],
+      "scrollAreas": [],
+      "samples": [
+        {
+          "t": 0,
+          "element": 0,
+          "x": 205,
+          "y": 409.81,
+          "width": 200,
+          "height": 80,
+          "transform": "none",
+          "opacity": 1
+        },
+        {
+          "t": 247.6,
+          "element": 0,
+          "x": 205,
+          "y": 349.81,
+          "width": 200,
+          "height": 80,
+          "transform": "none",
+          "opacity": 1
+        },
+        {
+          "t": 313.9,
+          "element": 0,
+          "x": 205,
+          "y": 289.81,
+          "width": 200,
+          "height": 80,
+          "transform": "none",
+          "opacity": 1
+        },
+        {
+          "t": 381,
+          "element": 0,
+          "x": 205,
+          "y": 229.81,
+          "width": 200,
+          "height": 80,
+          "transform": "none",
+          "opacity": 1
+        },
+        {
+          "t": 430.6,
+          "element": 0,
+          "x": 205,
+          "y": 169.81,
+          "width": 200,
+          "height": 80,
+          "transform": "none",
+          "opacity": 1
+        },
+        {
+          "t": 497.5,
+          "element": 0,
+          "x": 205,
+          "y": 109.81,
+          "width": 200,
+          "height": 80,
+          "transform": "none",
+          "opacity": 1
+        },
+        {
+          "t": 863.9,
+          "element": 0,
+          "x": 205,
+          "y": 169.81,
+          "width": 200,
+          "height": 80,
+          "transform": "none",
+          "opacity": 1
+        },
+        {
+          "t": 913.8,
+          "element": 0,
+          "x": 205,
+          "y": 229.81,
+          "width": 200,
+          "height": 80,
+          "transform": "none",
+          "opacity": 1
+        },
+        {
+          "t": 963.8,
+          "element": 0,
+          "x": 205,
+          "y": 289.81,
+          "width": 200,
+          "height": 80,
+          "transform": "none",
+          "opacity": 1
+        },
+        {
+          "t": 1030.5,
+          "element": 0,
+          "x": 205,
+          "y": 349.81,
+          "width": 200,
+          "height": 80,
+          "transform": "none",
+          "opacity": 1
+        },
+        {
+          "t": 1080.5,
+          "element": 0,
+          "x": 205,
+          "y": 409.81,
+          "width": 200,
+          "height": 80,
+          "transform": "none",
+          "opacity": 1
+        }
+      ],
+      "pointer": [],
+      "scroll": [
+        {
+          "t": 0,
+          "area": -1,
+          "x": 0,
+          "y": 890
+        },
+        {
+          "t": 247.6,
+          "area": -1,
+          "x": 0,
+          "y": 950
+        },
+        {
+          "t": 313.9,
+          "area": -1,
+          "x": 0,
+          "y": 1010
+        },
+        {
+          "t": 381,
+          "area": -1,
+          "x": 0,
+          "y": 1070
+        },
+        {
+          "t": 430.6,
+          "area": -1,
+          "x": 0,
+          "y": 1130
+        },
+        {
+          "t": 497.5,
+          "area": -1,
+          "x": 0,
+          "y": 1190
+        },
+        {
+          "t": 863.9,
+          "area": -1,
+          "x": 0,
+          "y": 1130
+        },
+        {
+          "t": 913.8,
+          "area": -1,
+          "x": 0,
+          "y": 1070
+        },
+        {
+          "t": 963.8,
+          "area": -1,
+          "x": 0,
+          "y": 1010
+        },
+        {
+          "t": 1030.5,
+          "area": -1,
+          "x": 0,
+          "y": 950
+        },
+        {
+          "t": 1080.5,
+          "area": -1,
+          "x": 0,
+          "y": 890
+        }
+      ],
+      "startHovered": false,
+      "hover": [],
+      "presses": []
+    },
+    "summary": {
+      "durationMs": 1535,
+      "frameCount": 93,
+      "stopReason": "user",
+      "elementChange": null,
+      "changedDescendants": 0,
+      "trackedDescendants": 0,
+      "pageScrollPx": 600,
+      "scrolledAreas": 0,
+      "clicks": 0,
+      "hoverEnters": 0
+    }
+  },
+  "estimated": []
+}

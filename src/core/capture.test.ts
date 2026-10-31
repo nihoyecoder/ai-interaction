@@ -75,7 +75,7 @@ describe('createCapture', () => {
     expect(elementOnly.estimated).toEqual([]);
   });
 
-  it('names the file after the site and the time', () => {
-    expect(captureFileName(capture)).toBe('ai-interaction-dribbble.com-2026-10-31-1905.json');
+  it('names the file after the site, the element, and the time', () => {
+    expect(captureFileName(capture)).toBe('ai-interaction-dribbble.com-div.card-2026-10-31-190512.json');
   });
 });

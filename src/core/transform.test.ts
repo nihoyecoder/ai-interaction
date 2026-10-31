@@ -15,9 +15,16 @@ function decoded(value: string): string {
 const radians = (degrees: number) => (degrees * Math.PI) / 180;
 
 describe('decodeTransform', () => {
-  it('returns null for none and for 3D matrices', () => {
+  it('returns null for none and for true 3D matrices', () => {
     expect(decodeTransform('none')).toBeNull();
-    expect(decodeTransform('matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)')).toBeNull();
+    // rotateX(45deg)
+    expect(decodeTransform('matrix3d(1, 0, 0, 0, 0, 0.707107, 0.707107, 0, 0, -0.707107, 0.707107, 0, 0, 0, 0, 1)')).toBeNull();
+    // translateZ(20px)
+    expect(decodeTransform('matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 20, 1)')).toBeNull();
+  });
+
+  it('decodes a flat matrix3d, such as translate3d(x, y, 0)', () => {
+    expect(decoded('matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 120, -8, 0, 1)')).toBe('translate 120px, -8px');
   });
 
   it('decodes a translation', () => {

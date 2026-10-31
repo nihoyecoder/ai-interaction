@@ -11,6 +11,7 @@
     "compile": "tsc --noEmit",
     "test": "vitest run",
     "fixtures": "node scripts/serve-fixtures.mjs",
+    "golden:record": "node scripts/golden/record-captures.mjs",
     "postinstall": "wxt prepare"
   },
   "dependencies": {
@@ -22,6 +23,7 @@
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@wxt-dev/module-react": "1.2.2",
+    "puppeteer-core": "25.16.0",
     "tailwindcss": "4.3.3",
     "typescript": "5.9.3",
     "vitest": "5.0.5",

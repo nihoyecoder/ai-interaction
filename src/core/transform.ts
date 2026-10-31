@@ -14,14 +14,14 @@ export interface DecodedTransform {
  * Chrome reports any 2D transform as `matrix(a, b, c, d, e, f)`. This splits it
  * into translate · rotate · skewX · scale, which recreates the same matrix in
  * that order. It's one equivalent way to write the transform, not necessarily
- * the one the site's code used. Returns null for "none" and for 3D matrices.
+ * the one the site's code used. A `matrix3d` that's really flat (like GSAP's
+ * `translate3d(x, y, 0)`) is decoded the same way. Returns null for "none" and
+ * for true 3D matrices.
  */
 export function decodeTransform(value: string): DecodedTransform | null {
-  const match = /^matrix\(([^)]*)\)$/.exec(value.trim());
-  if (!match?.[1]) return null;
-  const numbers = match[1].split(',').map((part) => Number(part.trim()));
-  if (numbers.length !== 6 || !numbers.every(Number.isFinite)) return null;
-  const [a, b, c, d, e, f] = numbers as [number, number, number, number, number, number];
+  const flat = flatMatrix(value.trim());
+  if (!flat) return null;
+  const [a, b, c, d, e, f] = flat;
 
   let scaleX = Math.hypot(a, b);
   if (scaleX === 0) {
@@ -90,6 +90,24 @@ export function describeTransformOrigin(
   const isDefault = Math.abs(x - width / 2) <= 1 && Math.abs(y - height / 2) <= 1 && isNear(z, 0);
   if (width <= 0 || height <= 0) return { isDefault, text: `${pxText}${zText}` };
   return { isDefault, text: `${originWords(Math.round((x / width) * 100), Math.round((y / height) * 100))}${zText}` };
+}
+
+type FlatMatrix = [number, number, number, number, number, number];
+
+/** The 2D matrix (a, b, c, d, e, f) from `matrix(...)`, or from a `matrix3d(...)` with no 3D part. */
+function flatMatrix(value: string): FlatMatrix | null {
+  const match = /^(matrix|matrix3d)\(([^)]*)\)$/.exec(value);
+  if (!match?.[2]) return null;
+  const numbers = match[2].split(',').map((part) => Number(part.trim()));
+  if (!numbers.every(Number.isFinite)) return null;
+  if (match[1] === 'matrix') return numbers.length === 6 ? (numbers as FlatMatrix) : null;
+  if (numbers.length !== 16) return null;
+  // Column-major: a b 0 0 / c d 0 0 / 0 0 1 0 / e f 0 1 is a flat transform.
+  const isFlat = [2, 3, 6, 7, 8, 9, 11, 14].every((index) => Math.abs(numbers[index] ?? 1) < 1e-6) &&
+    Math.abs((numbers[10] ?? 0) - 1) < 1e-6 &&
+    Math.abs((numbers[15] ?? 0) - 1) < 1e-6;
+  if (!isFlat) return null;
+  return [numbers[0] ?? 1, numbers[1] ?? 0, numbers[4] ?? 0, numbers[5] ?? 1, numbers[12] ?? 0, numbers[13] ?? 0];
 }
 
 const SCALE_TOLERANCE = 0.0005;
