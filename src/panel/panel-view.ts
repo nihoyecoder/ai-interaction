@@ -1,3 +1,4 @@
+import type { ElementSummary } from '@/core/element-summary';
 import { getPageSupport, type RestrictedReason } from '@/core/page-support';
 import type { PageInfo } from '@/messaging/protocol';
 import type { ActiveTab } from './session/useActiveTab';
@@ -15,6 +16,8 @@ export type PanelView =
   | { kind: 'ready'; tabId: number; hostname: string; notice: Notice | null }
   | { kind: 'connecting'; hostname: string }
   | { kind: 'connected'; hostname: string; page: PageInfo }
+  | { kind: 'picking'; hostname: string }
+  | { kind: 'selected'; hostname: string; element: ElementSummary }
   | { kind: 'away'; tabId: number; hostname: string };
 
 /**
@@ -26,9 +29,11 @@ export function getPanelView(activeTab: ActiveTab | null, connection: Connection
     if (activeTab?.id !== connection.tabId) {
       return { kind: 'away', tabId: connection.tabId, hostname: connection.hostname };
     }
-    return connection.status === 'connecting'
-      ? { kind: 'connecting', hostname: connection.hostname }
-      : { kind: 'connected', hostname: connection.hostname, page: connection.page };
+    const { hostname } = connection;
+    if (connection.status === 'connecting') return { kind: 'connecting', hostname };
+    if (connection.picking) return { kind: 'picking', hostname };
+    if (connection.selected) return { kind: 'selected', hostname, element: connection.selected };
+    return { kind: 'connected', hostname, page: connection.page };
   }
 
   if (!activeTab) return { kind: 'loading' };

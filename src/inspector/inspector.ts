@@ -5,6 +5,8 @@ import {
   type PageInfo,
   type PanelToInspector,
 } from '@/messaging/protocol';
+import { summarizeElement } from './dom';
+import { startPicker } from './picker';
 
 /** Stop waiting if the side panel hasn't connected by then (for example, it was closed). */
 const CONNECT_TIMEOUT_MS = 10_000;
@@ -42,11 +44,29 @@ export function startInspector(): void {
 
 function runSession(port: Browser.runtime.Port): void {
   log('Connected to the side panel.');
+  let stopPicker: (() => void) | null = null;
 
   const onMessage = (message: PanelToInspector) => {
     switch (message.type) {
       case 'page-info:request':
         send(port, { type: 'page-info', page: readPageInfo() });
+        break;
+      case 'picker:start':
+        stopPicker?.();
+        stopPicker = startPicker({
+          onSelect: (element) => {
+            stopPicker = null;
+            send(port, { type: 'picker:selected', element: summarizeElement(element) });
+          },
+          onCancel: () => {
+            stopPicker = null;
+            send(port, { type: 'picker:cancelled' });
+          },
+        });
+        break;
+      case 'picker:cancel':
+        stopPicker?.();
+        stopPicker = null;
         break;
     }
   };
@@ -54,6 +74,8 @@ function runSession(port: Browser.runtime.Port): void {
   port.onMessage.addListener(onMessage);
   // Fires when the panel disconnects or closes. Session cleanup goes here.
   port.onDisconnect.addListener(() => {
+    stopPicker?.();
+    stopPicker = null;
     port.onMessage.removeListener(onMessage);
     log('Disconnected and cleaned up.');
   });
@@ -64,10 +86,7 @@ function send(port: Browser.runtime.Port, message: InspectorToPanel): void {
 }
 
 function readPageInfo(): PageInfo {
-  return {
-    title: document.title.slice(0, MAX_TITLE_LENGTH),
-    elementCount: document.getElementsByTagName('*').length,
-  };
+  return { title: document.title.slice(0, MAX_TITLE_LENGTH) };
 }
 
 /** Logs to the page's DevTools console in development builds only. */

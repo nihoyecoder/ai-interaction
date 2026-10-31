@@ -7,7 +7,8 @@ A Chrome (Manifest V3) extension that captures a web interaction from a live pag
 ## Status
 
 - **M1.1 (scaffold) is done.** The user verified it in Chrome: the side panel opens from the toolbar and live reload works.
-- **M1.2 (page connection) is done.** The user verified it in Chrome, in the dev browser and with the production build in normal Chrome. **Next: M2.1, the element picker.** Its plan needs to be agreed before any code is written.
+- **M1.2 (page connection) is done.** The user verified it in Chrome, in both the dev and production builds.
+- **M2.1 (element picker) is done.** The user verified it in Chrome (example.com and a real animation-heavy site). **Next: M2.2, the element snapshot.** Its plan needs to be agreed before any code is written.
 - The current side panel UI is a functional placeholder. The user will set the visual direction (design tokens) when the real screens are built, starting in M2.
 - Update this section and the roadmap checkboxes whenever a milestone is completed.
 
@@ -56,6 +57,16 @@ So the per-site permission fallback isn't needed.
 - The inspector is a WXT **unlisted script** (`src/entrypoints/inspector.ts`, built to `/inspector.js`). It's injected with `scripting.executeScript` **only after the user clicks Connect**. Don't make it a WXT content script: `registration: 'runtime'` adds the script's `matches` to `host_permissions`. No content scripts are declared statically, and there is no `<all_urls>` host permission. Injection is idempotent: if a copy is already waiting for the panel, another injection does nothing.
 - The side panel and the inspector talk over **one `chrome.tabs.connect` port per session**. Message types are TypeScript discriminated unions in `src/messaging/protocol.ts`. **If the port disconnects (panel closed, Disconnect clicked, page reloaded or navigated, tab closed), the session ends and the inspector removes everything it added.**
 - **A capture session belongs to one tab** (product decision, M1.2). On any other tab, the panel offers "Return to [site]" or Disconnect. Which screen to show is decided by the pure function `getPanelView` in `src/panel/panel-view.ts`.
+- **Picker and highlight (M2.1).**
+  - The highlight is an `<ai-interaction-overlay>` element. It's added to `<html>` only while the user is picking, and removed afterwards.
+  - It's shown as a manual popover, in the browser's top layer. Its host styles are inline and `!important`, and its contents sit in a closed shadow root whose `.root` resets styles with `all: initial`. Everything in it has `pointer-events: none`, and it never styles or changes page elements.
+  - The picker uses capture listeners on `window`:
+    - `pointerdown`, `pointerup`, and `contextmenu` are hidden from the page.
+    - `mousedown`, `mouseup`, `click`, `dblclick`, and `auxclick` are hidden from the page and cancelled.
+    - Selection happens on `click`, the last event of a press, so no part of the press reaches the page afterwards.
+  - Hover, wheel, and scroll events reach the page, so its hover effects and scrolling keep working.
+  - The highlight updates at most once per animation frame.
+  - Picking stops on Esc (in the page or the panel), Cancel, the tab being hidden, or disconnect.
 - `src/core` must not use extension APIs or the live DOM, so it stays unit-testable.
 - Entrypoint files in `src/entrypoints/` stay thin. The real logic lives in feature folders.
 - Main-world scripts (code that reads page JavaScript such as `window.gsap`) come later and need a deliberate decision. They must be read-only and minimal, and their output is treated as untrusted.
@@ -68,7 +79,7 @@ src/
     background.ts
     sidepanel/      index.html + main.tsx (mounts the React app)
     inspector.ts    unlisted script; injected on demand, never in the manifest
-  panel/            side panel React UI: screens/, components/, session/ (hooks), panel-view.ts
+  panel/            side panel React UI: screens/, components/, hooks/, session/, panel-view.ts
   inspector/        runs inside the web page (plain TS): overlay, picker, snapshot, recorder/
   core/             pure logic + tests: evidence types, privacy, analysis/, recipe/
   messaging/        typed message contracts shared by panel + inspector
@@ -92,7 +103,8 @@ Known blind spots, which the UI and the recipes must communicate honestly:
 
 - Animations driven by JavaScript (GSAP, `requestAnimationFrame` loops, most spring animations) can only be Measured, not Observed.
 - Canvas and WebGL content.
-- Cross-origin iframes.
+- Iframes. The inspector runs only in the top frame, so the picker can't select anything inside an iframe, and clicks inside an iframe still reach it while picking.
+- Elements with `pointer-events: none`, which are often decorative layers. They can't be hovered or picked yet.
 - Closed shadow roots.
 - Restricted pages: `chrome://`, the Chrome Web Store, other extensions, and the PDF viewer. `file://` pages work only if the user opts in.
 
@@ -107,6 +119,7 @@ Known blind spots, which the UI and the recipes must communicate honestly:
 - Nothing leaves the device without an explicit user action. **Never put API keys in extension code.**
 - No remotely hosted code (Chrome Web Store policy). Everything is bundled.
 - The inspector must never change the elements it inspects: no outlines, classes, or styles on page nodes. The overlay lives in its own shadow root with `pointer-events: none`.
+- While the user is picking, page scripts (session-replay tools, for example) can see the overlay's host element. Its contents are in a closed shadow root, and the element is removed when picking stops.
 
 ## Inspector performance rules
 
@@ -137,7 +150,7 @@ Run these from the repo root:
 
 - [x] **M1.1** Scaffold WXT + React + TS + Tailwind. The side panel opens from the toolbar icon, and the generated manifest is reviewed.
 - [x] **M1.2** Page connection spike: inject into the active tab, round-trip messages over a port, and tear down on close. Also handle unsupported pages and verify the permission model.
-- [ ] **M2.1** Picker: hover highlight overlay, click to select, Esc to cancel.
+- [x] **M2.1** Picker: hover highlight overlay, click to select, Esc to cancel.
 - [ ] **M2.2** Element snapshot: DOM path, curated computed styles, a clean inspector card, re-select and clear.
 - [ ] **M3.1** Recorder: start and stop with a time cap, plus event telemetry and frame sampling of geometry, transform, and opacity.
 - [ ] **M3.2** Animation evidence: `getAnimations()`, transition and animation events, and class and style mutations.

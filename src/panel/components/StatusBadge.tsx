@@ -1,6 +1,11 @@
-export type BadgeTone = 'positive' | 'neutral' | 'warning';
+export type BadgeTone = 'active' | 'positive' | 'neutral' | 'warning';
 
 const TONES: Record<BadgeTone, { pill: string; dot: string }> = {
+  // Matches the blue of the on-page highlight.
+  active: {
+    pill: 'bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300',
+    dot: 'bg-blue-500',
+  },
   positive: {
     pill: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',
     dot: 'bg-emerald-500',

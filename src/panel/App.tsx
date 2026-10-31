@@ -1,5 +1,6 @@
 import { browser } from '#imports';
 import { StatusBadge } from './components/StatusBadge';
+import { useEscapeKey } from './hooks/useEscapeKey';
 import { getPanelView } from './panel-view';
 import { getBadge, ViewScreen } from './screens/ViewScreen';
 import { useActiveTab } from './session/useActiveTab';
@@ -9,9 +10,11 @@ const version = browser.runtime.getManifest().version;
 
 export function App() {
   const activeTab = useActiveTab();
-  const { connection, connect, refresh, disconnect } = useInspectorConnection();
+  const { connection, connect, startPicking, cancelPicking, disconnect } = useInspectorConnection();
   const view = getPanelView(activeTab, connection);
   const badge = getBadge(view);
+  // After clicking "Select element", keyboard focus is still in the panel, so Esc must work here too.
+  useEscapeKey(view.kind === 'picking', cancelPicking);
 
   return (
     <div className="flex min-h-screen flex-col bg-white text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100">
@@ -27,7 +30,8 @@ export function App() {
         <ViewScreen
           view={view}
           onConnect={connect}
-          onRefresh={refresh}
+          onSelectElement={startPicking}
+          onCancelPicking={cancelPicking}
           onDisconnect={disconnect}
           onGoToTab={goToTab}
         />

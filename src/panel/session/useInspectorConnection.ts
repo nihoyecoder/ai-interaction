@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { browser, type Browser } from '#imports';
+import type { ElementSummary } from '@/core/element-summary';
 import {
   INSPECTOR_PORT_NAME,
   type InspectorToPanel,
@@ -8,10 +9,20 @@ import {
 } from '@/messaging/protocol';
 import { describeConnectionError } from './connection-errors';
 
+type Connected = {
+  status: 'connected';
+  tabId: number;
+  hostname: string;
+  page: PageInfo;
+  /** The user is choosing an element on the page. */
+  picking: boolean;
+  selected: ElementSummary | null;
+};
+
 export type Connection =
   | { status: 'idle' }
   | { status: 'connecting'; tabId: number; hostname: string }
-  | { status: 'connected'; tabId: number; hostname: string; page: PageInfo }
+  | Connected
   /** The page reloaded, navigated away, or closed, which ended the session. */
   | { status: 'closed'; tabId: number }
   | { status: 'failed'; tabId: number; message: string; detail: string };
@@ -46,7 +57,17 @@ export function useInspectorConnection() {
 
     port.onMessage.addListener((message: InspectorToPanel) => {
       if (portRef.current !== port) return;
-      if (message.type === 'page-info') setConnection({ status: 'connected', tabId, hostname, page: message.page });
+      switch (message.type) {
+        case 'page-info':
+          setConnection({ status: 'connected', tabId, hostname, page: message.page, picking: false, selected: null });
+          break;
+        case 'picker:selected':
+          setConnection(whileConnected((current) => ({ ...current, picking: false, selected: message.element })));
+          break;
+        case 'picker:cancelled':
+          setConnection(whileConnected((current) => ({ ...current, picking: false })));
+          break;
+      }
     });
     port.onDisconnect.addListener(() => {
       if (portRef.current !== port) return;
@@ -62,8 +83,16 @@ export function useInspectorConnection() {
     send(port, { type: 'page-info:request' });
   }, []);
 
-  const refresh = useCallback(() => {
-    if (portRef.current) send(portRef.current, { type: 'page-info:request' });
+  const startPicking = useCallback(() => {
+    if (!portRef.current) return;
+    send(portRef.current, { type: 'picker:start' });
+    setConnection(whileConnected((current) => ({ ...current, picking: true })));
+  }, []);
+
+  const cancelPicking = useCallback(() => {
+    if (!portRef.current) return;
+    send(portRef.current, { type: 'picker:cancel' });
+    setConnection(whileConnected((current) => ({ ...current, picking: false })));
   }, []);
 
   const disconnect = useCallback(() => {
@@ -76,7 +105,12 @@ export function useInspectorConnection() {
   // Closing the panel ends the session. Chrome does this anyway; this makes it explicit.
   useEffect(() => () => portRef.current?.disconnect(), []);
 
-  return { connection, connect, refresh, disconnect };
+  return { connection, connect, startPicking, cancelPicking, disconnect };
+}
+
+/** Applies a change only while connected, e.g. a picker message that arrives as the session ends. */
+function whileConnected(change: (current: Connected) => Connected) {
+  return (current: Connection): Connection => (current.status === 'connected' ? change(current) : current);
 }
 
 function send(port: Browser.runtime.Port, message: PanelToInspector): void {

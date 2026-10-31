@@ -1,5 +1,6 @@
 import type { RestrictedReason } from '@/core/page-support';
 import { Button } from '../components/Button';
+import { ElementCard } from '../components/ElementCard';
 import { NoticeBanner } from '../components/NoticeBanner';
 import { Screen } from '../components/Screen';
 import type { BadgeTone } from '../components/StatusBadge';
@@ -18,12 +19,26 @@ const CONNECT_COPY =
 interface ViewScreenProps {
   view: PanelView;
   onConnect: (tabId: number, hostname: string) => void;
-  onRefresh: () => void;
+  onSelectElement: () => void;
+  onCancelPicking: () => void;
   onDisconnect: () => void;
   onGoToTab: (tabId: number) => void;
 }
 
-export function ViewScreen({ view, onConnect, onRefresh, onDisconnect, onGoToTab }: ViewScreenProps) {
+export function ViewScreen({
+  view,
+  onConnect,
+  onSelectElement,
+  onCancelPicking,
+  onDisconnect,
+  onGoToTab,
+}: ViewScreenProps) {
+  const disconnectButton = (
+    <Button variant="secondary" onClick={onDisconnect}>
+      Disconnect
+    </Button>
+  );
+
   switch (view.kind) {
     case 'loading':
       return <Screen title="Checking this page…" />;
@@ -62,26 +77,49 @@ export function ViewScreen({ view, onConnect, onRefresh, onDisconnect, onGoToTab
       return (
         <Screen
           eyebrow={view.hostname}
-          title="Connected"
+          title={view.page.title || 'Untitled page'}
           actions={
             <>
-              <Button variant="secondary" onClick={onRefresh}>
-                Refresh
-              </Button>
-              <Button variant="secondary" onClick={onDisconnect}>
-                Disconnect
-              </Button>
+              <Button onClick={onSelectElement}>Select element</Button>
+              {disconnectButton}
             </>
           }
         >
-          <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1">
-            <dt>Page title</dt>
-            <dd className="truncate text-neutral-900 dark:text-neutral-100">{view.page.title || 'Untitled'}</dd>
-            <dt>Elements</dt>
-            <dd className="text-neutral-900 tabular-nums dark:text-neutral-100">
-              {view.page.elementCount.toLocaleString()}
-            </dd>
-          </dl>
+          Choose the element whose interaction you want to capture.
+        </Screen>
+      );
+
+    case 'picking':
+      return (
+        <Screen
+          eyebrow={view.hostname}
+          title="Select an element"
+          actions={
+            <Button variant="secondary" onClick={onCancelPicking}>
+              Cancel
+            </Button>
+          }
+        >
+          Move your pointer over the page and click the element you want. Clicks won't affect the page while you're
+          selecting. Press Esc to cancel.
+        </Screen>
+      );
+
+    case 'selected':
+      return (
+        <Screen
+          eyebrow={view.hostname}
+          title="Element selected"
+          actions={
+            <>
+              <Button variant="secondary" onClick={onSelectElement}>
+                Select another
+              </Button>
+              {disconnectButton}
+            </>
+          }
+        >
+          <ElementCard element={view.element} />
         </Screen>
       );
 
@@ -93,9 +131,7 @@ export function ViewScreen({ view, onConnect, onRefresh, onDisconnect, onGoToTab
           actions={
             <>
               <Button onClick={() => onGoToTab(view.tabId)}>Return to {view.hostname}</Button>
-              <Button variant="secondary" onClick={onDisconnect}>
-                Disconnect
-              </Button>
+              {disconnectButton}
             </>
           }
         >
@@ -119,7 +155,10 @@ export function getBadge(view: PanelView): { label: string; tone: BadgeTone } {
     case 'connecting':
       return { label: 'Connecting', tone: 'neutral' };
     case 'connected':
+    case 'selected':
       return { label: 'Connected', tone: 'positive' };
+    case 'picking':
+      return { label: 'Selecting', tone: 'active' };
     case 'away':
       return { label: 'Other tab', tone: 'warning' };
   }

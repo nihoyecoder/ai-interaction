@@ -1,9 +1,15 @@
 import { describe, expect, it } from 'vitest';
+import type { Connection } from './session/useInspectorConnection';
 import { getPanelView } from './panel-view';
 
 const exampleTab = { id: 1, url: 'https://example.com/' };
 const otherTab = { id: 2, url: 'https://other.dev/' };
-const page = { title: 'Example', elementCount: 42 };
+const page = { title: 'Example' };
+const element = { tag: 'div', id: null, classes: ['card'], width: 320, height: 480 };
+
+function connected(overrides: Partial<Extract<Connection, { status: 'connected' }>> = {}): Connection {
+  return { status: 'connected', tabId: 1, hostname: 'example.com', page, picking: false, selected: null, ...overrides };
+}
 
 describe('getPanelView', () => {
   it('shows loading until the active tab is known', () => {
@@ -30,24 +36,38 @@ describe('getPanelView', () => {
     });
   });
 
-  it('shows the session on its own tab', () => {
-    expect(getPanelView(exampleTab, { status: 'connected', tabId: 1, hostname: 'example.com', page })).toEqual({
-      kind: 'connected',
-      hostname: 'example.com',
-      page,
-    });
+  it('shows the connecting state on its own tab', () => {
     expect(getPanelView(exampleTab, { status: 'connecting', tabId: 1, hostname: 'example.com' })).toEqual({
       kind: 'connecting',
       hostname: 'example.com',
     });
   });
 
-  it('asks the user to return when the session belongs to another tab', () => {
-    expect(getPanelView(otherTab, { status: 'connected', tabId: 1, hostname: 'example.com', page })).toEqual({
-      kind: 'away',
-      tabId: 1,
+  it('shows the connected page on its own tab', () => {
+    expect(getPanelView(exampleTab, connected())).toEqual({ kind: 'connected', hostname: 'example.com', page });
+  });
+
+  it('shows picking while the user chooses an element', () => {
+    expect(getPanelView(exampleTab, connected({ picking: true }))).toEqual({ kind: 'picking', hostname: 'example.com' });
+  });
+
+  it('shows the selected element', () => {
+    expect(getPanelView(exampleTab, connected({ selected: element }))).toEqual({
+      kind: 'selected',
+      hostname: 'example.com',
+      element,
+    });
+  });
+
+  it('shows picking again when choosing another element', () => {
+    expect(getPanelView(exampleTab, connected({ picking: true, selected: element }))).toEqual({
+      kind: 'picking',
       hostname: 'example.com',
     });
+  });
+
+  it('asks the user to return when the session belongs to another tab', () => {
+    expect(getPanelView(otherTab, connected())).toEqual({ kind: 'away', tabId: 1, hostname: 'example.com' });
   });
 
   it('shows a closed-session notice only on the tab whose session closed', () => {
