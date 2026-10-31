@@ -11,7 +11,8 @@ A Chrome (Manifest V3) extension that captures a web interaction from a live pag
 - **M2.1 (element picker) is done.** The user verified it in Chrome, on example.com and on a real animation-heavy site.
 - **M2.2 (element details card) is done.** The user verified it in Chrome against `fixtures/style-snapshot.html` (all expected values matched). Phase 2 is complete.
 - **M3.1 (recorder) is done.** The user verified it in Chrome against `fixtures/recording.html`, including the auto-stop and leaving the tab.
-- **M3.2 (animation evidence) is done.** The user verified it in Chrome against `fixtures/recording.html` (sections 1–4 and 6). **Next: M3.3, evidence model, timeline view, and JSON export.** Its plan needs to be agreed before any code is written.
+- **M3.2 (animation evidence) is done.** The user verified it in Chrome against `fixtures/recording.html` (sections 1–4 and 6).
+- **M3.3 (evidence package, timeline, export) is done.** The user verified it in Chrome (no screenshot of the timeline yet). **Phase 3 is complete. Next: M4, analysis.** Its plan needs to be agreed before any code is written.
 - The current side panel UI is a functional placeholder. The user will set the visual direction (design tokens) when the real screens are built, starting in M2.
 - Update this section and the roadmap checkboxes whenever a milestone is completed.
 
@@ -100,6 +101,25 @@ So the per-site permission fallback isn't needed.
     - inline-style change **counts only**
   - `describeEvidence` (`src/core/recording-evidence.ts`) turns these into lines labeled Observed or Estimated. "JavaScript is animating it" is Estimated, and appears at 10 or more inline-style changes.
   - Product decision: detecting animation libraries in the page's main world (GSAP, Framer Motion, Lenis) is deferred.
+- **Evidence package, timeline, and export (M3.3).**
+  - `createCapture` (`src/core/capture.ts`) builds the single versioned package that analysis (Phase 4) and recipes (Phase 5) read. It has `format: 'ai-interaction/capture'` and `version: 1`, so **bump the version on breaking changes**. Facts are grouped by how we know them:
+    - `observed`: the element snapshot, animations, and class, attribute, and style-write evidence
+    - `measured`: the recording samples and their summary
+    - `estimated`: only the Estimated evidence lines
+  - Product decision: the page is identified by **hostname only**, never the full URL. The package contains no page text.
+  - `buildTimeline` (`src/core/timeline.ts`) turns a recording into rows in three groups:
+    - **actions:** hover spans, presses, scroll activity
+    - **changes:** the element, plus up to 5 inner elements
+    - **evidence:** class-change points, plus up to 6 animation bars showing their delay, or drawn as "ongoing" when running at the start or scroll-driven
+    It shares `changeTimesByElement` with the summary, so the two always agree.
+  - The timeline sits inside the recording card, between the summary sentences and the Evidence list (a product decision). `Timeline.tsx` follows the dataviz skill:
+    - colors: categorical slots 1–3, validated with `validate_palette.js` against `#ffffff` and `#0a0a0a`
+    - every row has a text label
+    - marks: 8 px rounded bars, and 8 px dots with a surface ring and a 24 px hit area
+    - solid hairline gridlines
+    - tooltips on hover and on keyboard focus
+    - a "Timeline as a list" view, because light-mode green is below 3:1 contrast
+  - Export (`ExportControls.tsx`) offers Copy JSON (clipboard) and Download JSON (a blob link). It needs no permissions.
 - `src/core` must not use extension APIs or the live DOM, so it stays unit-testable.
 - Entrypoint files in `src/entrypoints/` stay thin. The real logic lives in feature folders.
 - Main-world scripts (code that reads page JavaScript such as `window.gsap`) come later and need a deliberate decision. They must be read-only and minimal, and their output is treated as untrusted.
@@ -190,7 +210,7 @@ Run these from the repo root:
 - [x] **M2.2** Element snapshot: DOM path, curated computed styles, a clean inspector card, re-select and clear.
 - [x] **M3.1** Recorder: start and stop with a time cap, plus event telemetry and frame sampling of geometry, transform, and opacity.
 - [x] **M3.2** Animation evidence: `getAnimations()`, transition and animation events, and class and style mutations.
-- [ ] **M3.3** Evidence model plus a simple timeline view and a JSON export for debugging.
+- [x] **M3.3** Evidence model plus a simple timeline view and a JSON export for debugging.
 - [ ] **M4** Analysis in `core` (triggers, timing, easing fit, stagger), unit-tested against `fixtures/`.
 - [ ] **M5.1** Deterministic recipe, copyable, for one narrow target stack.
 - [ ] **M5.2** Compare our recipe with a plain "recording + prompt" baseline. Then decide whether an AI step adds value.

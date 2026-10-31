@@ -1,6 +1,7 @@
 import type { RestrictedReason } from '@/core/page-support';
 import { Button } from '../components/Button';
 import { ElementDetails } from '../components/ElementDetails';
+import { ExportControls } from '../components/ExportControls';
 import { NoticeBanner } from '../components/NoticeBanner';
 import { RecordingSummaryCard } from '../components/RecordingSummaryCard';
 import { RecordingTimer } from '../components/RecordingTimer';
@@ -152,6 +153,7 @@ export function ViewScreen({
           />
           {view.recording && <RecordingSummaryCard recording={view.recording} />}
           <ElementDetails snapshot={view.snapshot} onSelectParent={onSelectParent} onSelectChild={onSelectChild} />
+          <ExportControls hostname={view.hostname} snapshot={view.snapshot} recording={view.recording} />
         </div>
       );
 

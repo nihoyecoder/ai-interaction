@@ -22,19 +22,7 @@ const TOLERANCE_PX = 0.5;
 /** Measured facts about a recording, for the summary shown after it stops. */
 export function summarizeRecording(recording: Recording): RecordingSummary {
   const pageScroll = recording.scroll.filter((sample) => sample.area === -1);
-  const scrollAt = (t: number) => latestAt(pageScroll, t);
-
-  const changeTimes: number[][] = recording.elements.map(() => []);
-  const previous = new Map<number, ElementSample>();
-  for (const sample of recording.samples) {
-    const before = previous.get(sample.element);
-    previous.set(sample.element, sample);
-    if (before && changedOnItsOwn(before, sample, scrollAt(before.t), scrollAt(sample.t))) {
-      changeTimes[sample.element]?.push(sample.t);
-    }
-  }
-
-  const [ownTimes = [], ...descendantTimes] = changeTimes;
+  const [ownTimes = [], ...descendantTimes] = changeTimesByElement(recording);
   const firstChange = ownTimes[0];
   const lastChange = ownTimes[ownTimes.length - 1];
 
@@ -50,6 +38,25 @@ export function summarizeRecording(recording: Recording): RecordingSummary {
     clicks: recording.presses.filter((press) => press.type === 'release').length,
     hoverEnters: recording.hover.filter((change) => change.hovered).length,
   };
+}
+
+/**
+ * For each tracked element, the times (ms) of samples where it changed on its
+ * own, not counting page scrolling. Index 0 is the selected element.
+ */
+export function changeTimesByElement(recording: Recording): number[][] {
+  const pageScroll = recording.scroll.filter((sample) => sample.area === -1);
+  const scrollAt = (t: number) => latestAt(pageScroll, t);
+  const changeTimes: number[][] = recording.elements.map(() => []);
+  const previous = new Map<number, ElementSample>();
+  for (const sample of recording.samples) {
+    const before = previous.get(sample.element);
+    previous.set(sample.element, sample);
+    if (before && changedOnItsOwn(before, sample, scrollAt(before.t), scrollAt(sample.t))) {
+      changeTimes[sample.element]?.push(sample.t);
+    }
+  }
+  return changeTimes;
 }
 
 /**

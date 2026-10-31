@@ -3,6 +3,7 @@ import { formatNumber } from '@/core/css-values';
 import type { Recording, StopReason } from '@/core/recording';
 import { describeEvidence } from '@/core/recording-evidence';
 import { summarizeRecording, type RecordingSummary } from '@/core/recording-summary';
+import { Timeline } from './Timeline';
 
 const STOP_NOTES: Partial<Record<StopReason, string>> = {
   'time-limit': 'Stopped at the 10-second limit.',
@@ -43,6 +44,7 @@ export function RecordingSummaryCard({ recording }: { recording: Recording }) {
           <li>{describeActions(summary)}</li>
         </ul>
       )}
+      {summary.stopReason !== 'nothing-selected' && <Timeline recording={recording} />}
       {summary.stopReason !== 'nothing-selected' && (
         <section className="mt-3 border-t border-neutral-200 pt-2.5 dark:border-neutral-800">
           <h4 className="text-[11px] font-semibold tracking-wide text-neutral-500 uppercase dark:text-neutral-400">
