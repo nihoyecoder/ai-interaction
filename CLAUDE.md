@@ -162,13 +162,14 @@ So the per-site permission fallback isn't needed.
   - `src/core/analysis/golden.test.ts` checks meanings, not exact milliseconds, so re-recording doesn't break it.
   - **Re-record and re-run the tests after changing the recorder or the analysis.** When adding an interaction type, add a fixture section, a scenario, and a golden test.
   - The harness skips the side panel and the extension shell. Those still need a person in Chrome.
-- **Easing fit (M4.2)** (). It runs only for motions with no explaining animation from Chrome, because Chrome's easing is exact.
-  - The progress curve comes from the most telling changed property ( order). A reset jump at the end is excluded.
+- **Easing fit (M4.2)** (`src/core/analysis/easing.ts`). It runs only for motions with no explaining animation from Chrome, because Chrome's easing is exact.
+  - The progress curve comes from the most telling changed property (`EASING_PROPERTIES` order). A reset jump at the end is excluded.
   - **Candidates:**
     - CSS keywords, listed first so they win ties
-    - GSAP power1–4, sine, expo, circ, back, elastic, and bounce, using their real formulas, with the usual cubic-bezier approximation as     - underdamped springs: a coarse grid, then the best one refined
+    - GSAP power1–4, sine, expo, circ, back, elastic, and bounce, using their real formulas, with the usual cubic-bezier approximation as `css`
+    - underdamped springs: a coarse grid, then the best one refined
   - **Timing is fitted too.** The true start lies before the first point that **actually moved**, which skips reset frames. The true end can lie after the last visible change, for long tails. Both are searched by seeded coordinate descent down to 0.25 ms. A fixed grid stepped over elastic's narrow optimum.
-  - **Quality:** close is 2% RMS error or less, rough is 5% or less, otherwise none. None adds the closest , fitted together with the timing.
+  - **Quality:** close is 2% RMS error or less, rough is 5% or less, otherwise none. "None" adds the closest `cubic-bezier`, fitted together with the timing.
   - **Duration:** the fitted end minus the fitted start, except for springs. A spring's end is undefined (any faster spring over a longer time matches), so springs use the measured duration.
   - The fitted easing is always **Estimated**.
 - `src/core` must not use extension APIs or the live DOM, so it stays unit-testable.
