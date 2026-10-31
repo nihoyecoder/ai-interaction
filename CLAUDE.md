@@ -8,7 +8,8 @@ A Chrome (Manifest V3) extension that captures a web interaction from a live pag
 
 - **M1.1 (scaffold) is done.** The user verified it in Chrome: the side panel opens from the toolbar and live reload works.
 - **M1.2 (page connection) is done.** The user verified it in Chrome, in both the dev and production builds.
-- **M2.1 (element picker) is done.** The user verified it in Chrome (example.com and a real animation-heavy site). **Next: M2.2, the element snapshot.** Its plan needs to be agreed before any code is written.
+- **M2.1 (element picker) is done.** The user verified it in Chrome, on example.com and on a real animation-heavy site.
+- **M2.2 (element details card) is done.** The user verified it in Chrome against `fixtures/style-snapshot.html` (all expected values matched). **Phase 2 is complete. Next: Phase 3 (M3.1, recorder).** Its plan needs to be agreed before any code is written.
 - The current side panel UI is a functional placeholder. The user will set the visual direction (design tokens) when the real screens are built, starting in M2.
 - Update this section and the roadmap checkboxes whenever a milestone is completed.
 
@@ -67,6 +68,14 @@ So the per-site permission fallback isn't needed.
   - Hover, wheel, and scroll events reach the page, so its hover effects and scrolling keep working.
   - The highlight updates at most once per animation frame.
   - Picking stops on Esc (in the page or the panel), Cancel, the tab being hidden, or disconnect.
+- **Element details (M2.2).**
+  - The inspector reads a snapshot once per selection (`src/inspector/snapshot.ts`): name, path, size before and after transforms, page position, and the computed styles in `SNAPSHOT_PROPERTIES`. It only reads. Page values are capped in `createElementSnapshot`.
+  - "Only non-default styles" (a product decision) means compared with **Chrome's built-in defaults for that kind of element**. The panel reads those from an unstyled copy of the same tag, created in a closed shadow root in the side panel (`src/panel/default-styles.ts`), never on the page.
+  - The default for transform origin depends on size: center for HTML elements and an outer `<svg>`, 0 0 for SVG elements inside an `<svg>`.
+  - Transitions and animations are judged by meaning: "all 0s" means no transition, and animation-name "none" means no animation.
+  - A transform is decoded from Chrome's `matrix()` into translate · rotate · skewX · scale (`src/core/transform.ts`). That's one equivalent way to write it, so the raw matrix is always shown beside it. `matrix3d` isn't decoded yet.
+  - Parent/Child: "Child" first goes back down the way the user came up, otherwise to the first visible child. Each step flashes the highlight for 1.5 s.
+  - **Never scroll the page programmatically.** Scrolling can trigger the site's own scroll animations.
 - `src/core` must not use extension APIs or the live DOM, so it stays unit-testable.
 - Entrypoint files in `src/entrypoints/` stay thin. The real logic lives in feature folders.
 - Main-world scripts (code that reads page JavaScript such as `window.gsap`) come later and need a deliberate decision. They must be read-only and minimal, and their output is treated as untrusted.
@@ -84,7 +93,8 @@ src/
   core/             pure logic + tests: evidence types, privacy, analysis/, recipe/
   messaging/        typed message contracts shared by panel + inspector
   storage/          chrome.storage wrappers (settings, recent captures)
-fixtures/           local test pages with known interaction values (ground truth)
+fixtures/           local test pages with known values, each listing what the extension should report (`npm run fixtures`)
+scripts/            dev tooling, e.g. serve-fixtures.mjs (no dependencies, local only)
 public/icon/        extension icons (WXT placeholders; to be replaced with our own design)
 ```
 
@@ -143,6 +153,7 @@ Run these from the repo root:
 - `npm run build` creates a production build in `.output/chrome-mv3`.
 - `npm run compile` runs the TypeScript type check.
 - `npm test` runs the unit tests (Vitest).
+- `npm run fixtures` serves `fixtures/` at http://127.0.0.1:5174 (local only). Run it in a second terminal next to `npm run dev`.
 - After adding or renaming an entrypoint, run `npx wxt prepare` to regenerate WXT's types, such as the list of valid script paths.
 - `npm run zip` creates the Chrome Web Store package.
 
@@ -151,7 +162,7 @@ Run these from the repo root:
 - [x] **M1.1** Scaffold WXT + React + TS + Tailwind. The side panel opens from the toolbar icon, and the generated manifest is reviewed.
 - [x] **M1.2** Page connection spike: inject into the active tab, round-trip messages over a port, and tear down on close. Also handle unsupported pages and verify the permission model.
 - [x] **M2.1** Picker: hover highlight overlay, click to select, Esc to cancel.
-- [ ] **M2.2** Element snapshot: DOM path, curated computed styles, a clean inspector card, re-select and clear.
+- [x] **M2.2** Element snapshot: DOM path, curated computed styles, a clean inspector card, re-select and clear.
 - [ ] **M3.1** Recorder: start and stop with a time cap, plus event telemetry and frame sampling of geometry, transform, and opacity.
 - [ ] **M3.2** Animation evidence: `getAnimations()`, transition and animation events, and class and style mutations.
 - [ ] **M3.3** Evidence model plus a simple timeline view and a JSON export for debugging.

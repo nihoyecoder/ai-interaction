@@ -10,7 +10,8 @@ const version = browser.runtime.getManifest().version;
 
 export function App() {
   const activeTab = useActiveTab();
-  const { connection, connect, startPicking, cancelPicking, disconnect } = useInspectorConnection();
+  const { connection, connect, startPicking, cancelPicking, selectParent, selectChild, clearSelection, disconnect } =
+    useInspectorConnection();
   const view = getPanelView(activeTab, connection);
   const badge = getBadge(view);
   // After clicking "Select element", keyboard focus is still in the panel, so Esc must work here too.
@@ -32,6 +33,9 @@ export function App() {
           onConnect={connect}
           onSelectElement={startPicking}
           onCancelPicking={cancelPicking}
+          onSelectParent={selectParent}
+          onSelectChild={selectChild}
+          onClearSelection={clearSelection}
           onDisconnect={disconnect}
           onGoToTab={goToTab}
         />

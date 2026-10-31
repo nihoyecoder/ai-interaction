@@ -1,11 +1,27 @@
 import { describe, expect, it } from 'vitest';
+import { createElementSnapshot, INITIAL_STYLE_VALUES } from '@/core/element-snapshot';
 import type { Connection } from './session/useInspectorConnection';
 import { getPanelView } from './panel-view';
 
 const exampleTab = { id: 1, url: 'https://example.com/' };
 const otherTab = { id: 2, url: 'https://other.dev/' };
 const page = { title: 'Example' };
-const element = { tag: 'div', id: null, classes: ['card'], width: 320, height: 480 };
+const snapshot = createElementSnapshot({
+  tag: 'div',
+  id: '',
+  classes: ['card'],
+  namespace: 'html',
+  rect: { left: 0, top: 0, width: 320, height: 480 },
+  scroll: { x: 0, y: 0 },
+  layoutSize: { width: 320, height: 480 },
+  path: [],
+  styles: INITIAL_STYLE_VALUES,
+  type: null,
+  open: false,
+  hovered: false,
+  canSelectParent: true,
+  canSelectChild: false,
+});
 
 function connected(overrides: Partial<Extract<Connection, { status: 'connected' }>> = {}): Connection {
   return { status: 'connected', tabId: 1, hostname: 'example.com', page, picking: false, selected: null, ...overrides };
@@ -52,15 +68,15 @@ describe('getPanelView', () => {
   });
 
   it('shows the selected element', () => {
-    expect(getPanelView(exampleTab, connected({ selected: element }))).toEqual({
+    expect(getPanelView(exampleTab, connected({ selected: snapshot }))).toEqual({
       kind: 'selected',
       hostname: 'example.com',
-      element,
+      snapshot,
     });
   });
 
   it('shows picking again when choosing another element', () => {
-    expect(getPanelView(exampleTab, connected({ picking: true, selected: element }))).toEqual({
+    expect(getPanelView(exampleTab, connected({ picking: true, selected: snapshot }))).toEqual({
       kind: 'picking',
       hostname: 'example.com',
     });

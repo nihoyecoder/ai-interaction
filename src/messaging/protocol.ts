@@ -3,7 +3,7 @@
  * and the background service worker. Every message has a `type`, so TypeScript
  * can tell them apart and catch mistakes at build time.
  */
-import type { ElementSummary } from '@/core/element-summary';
+import type { ElementSnapshot } from '@/core/element-snapshot';
 
 /** Name of the port the side panel opens to the inspector in a tab. */
 export const INSPECTOR_PORT_NAME = 'ai-interaction:inspector';
@@ -17,15 +17,18 @@ export interface PageInfo {
 export type PanelToInspector =
   | { type: 'page-info:request' }
   | { type: 'picker:start' }
-  | { type: 'picker:cancel' };
+  | { type: 'picker:cancel' }
+  | { type: 'selection:parent' }
+  | { type: 'selection:child' }
+  | { type: 'selection:clear' };
 
 /** Inspector → side panel, over the port. */
 export type InspectorToPanel =
   | { type: 'page-info'; page: PageInfo }
-  /** The user clicked an element. */
-  | { type: 'picker:selected'; element: ElementSummary }
   /** Picking stopped without a selection: Esc on the page, or the tab was hidden. */
-  | { type: 'picker:cancelled' };
+  | { type: 'picker:cancelled' }
+  /** A new element is selected, by clicking it or by moving to its parent or child. */
+  | { type: 'selection:changed'; snapshot: ElementSnapshot };
 
 /** Background → side panel, as a runtime message. */
 export type BackgroundToPanel = { type: 'toolbar-clicked'; tabId: number };

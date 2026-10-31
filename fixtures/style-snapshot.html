@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Test page: style snapshot</title>
+    <style>
+      /* Page layout. None of these rules touch the test elements' reported styles. */
+      body {
+        margin: 0;
+        padding: 32px;
+        font: 15px/1.5 system-ui, sans-serif;
+        color: #1f2937;
+        background: #f3f4f6;
+      }
+      header h1 {
+        margin: 0 0 4px;
+        font-size: 20px;
+      }
+      header p {
+        max-width: 640px;
+        margin: 0 0 32px;
+        color: #4b5563;
+      }
+      .items {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 24px;
+      }
+      .item {
+        padding: 24px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+      }
+      .item h2 {
+        margin: 0 0 12px;
+        font-size: 14px;
+      }
+      .demo {
+        display: grid;
+        place-items: center;
+        height: 200px;
+      }
+      .expected {
+        margin: 16px 0 0;
+        padding: 12px;
+        background: #f9fafb;
+        border-radius: 8px;
+        font: 12px/1.6 ui-monospace, monospace;
+        color: #374151;
+        white-space: pre-wrap;
+      }
+
+      /* 1. Card */
+      .card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        width: 240px;
+        height: 160px;
+        padding: 16px;
+        box-sizing: border-box;
+        overflow: hidden;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #6366f1, #ec4899);
+        color: #fff;
+        transform: rotate(-9deg) scale(0.82);
+        transition:
+          transform 0.6s cubic-bezier(0.2, 0, 0, 1),
+          opacity 0.3s ease-out 0.1s;
+      }
+      .shine {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(160deg, rgb(255 255 255 / 0.35), transparent 50%);
+      }
+      .card h3 {
+        margin: 0;
+        font-size: 16px;
+      }
+
+      /* 2. Skewed flag */
+      .flag {
+        width: 160px;
+        height: 100px;
+        border-radius: 8px;
+        background: #10b981;
+        transform: skewX(20deg);
+        transform-origin: top left;
+      }
+
+      /* 3. Mirrored block */
+      .mirror {
+        width: 160px;
+        height: 100px;
+        background: #f59e0b;
+        transform: scaleX(-1);
+      }
+
+      /* 4. Pulsing dot */
+      .pulse {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: #0ea5e9;
+        animation: pulse 2s ease-in-out 0.5s infinite alternate;
+      }
+      @keyframes pulse {
+        to {
+          opacity: 0.4;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Test page: style snapshot</h1>
+      <p>
+        Each element below has known styles. Select it with AI Interaction and compare the details card with the
+        "Expected" box. Every card selected by clicking also shows the note about hover effects.
+      </p>
+    </header>
+
+    <main class="items">
+      <section class="item">
+        <h2>1. Card: click an empty area of the card, not the text</h2>
+        <div class="demo">
+          <div class="card">
+            <div class="shine"></div>
+            <h3>Card title</h3>
+            <p>Supporting text</p>
+          </div>
+        </div>
+        <p class="expected">div.card
+Size 240 × 160 px · On screen 215 × 160 px
+Layout      Display flex · Position relative · Overflow hidden
+Transform   rotate -9° · scale 0.82
+Appearance  Corner radius 16px
+Motion      transform · 600 ms · cubic-bezier(0.2, 0, 0, 1)
+            opacity · 300 ms · ease-out · delay 100 ms
+
+Then: ↑ Parent → div.demo (Display grid)
+      ↓ Child  → div.card again
+      ↓ Child  → div.shine (Position absolute), a layer the mouse can't hover</p>
+      </section>
+
+      <section class="item">
+        <h2>2. Skewed flag</h2>
+        <div class="demo"><div class="flag"></div></div>
+        <p class="expected">div.flag
+Size 160 × 100 px · On screen 196 × 100 px
+Transform   skew 20° · Origin top left
+Appearance  Corner radius 8px</p>
+      </section>
+
+      <section class="item">
+        <h2>3. Mirrored block</h2>
+        <div class="demo"><div class="mirror"></div></div>
+        <p class="expected">div.mirror
+Size 160 × 100 px (no "On screen" row)
+Transform   scale -1, 1</p>
+      </section>
+
+      <section class="item">
+        <h2>4. Pulsing dot</h2>
+        <div class="demo"><div class="pulse"></div></div>
+        <p class="expected">div.pulse
+Appearance  Corner radius 50%
+            Opacity: a value between 0.4 and 1, because it's animating
+Motion      pulse · 2 s · ease-in-out · delay 500 ms · repeats forever · alternate</p>
+      </section>
+
+      <section class="item">
+        <h2>5. Plain paragraph</h2>
+        <div class="demo"><p class="plain">Just text, with no styles of its own.</p></div>
+        <p class="expected">p.plain
+"No styles differ from the browser defaults."</p>
+      </section>
+    </main>
+  </body>
+</html>

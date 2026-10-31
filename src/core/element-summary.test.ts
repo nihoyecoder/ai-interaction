@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { createElementSummary, formatElementName, formatElementSize, type ElementSummary } from './element-summary';
+import {
+  createElementSummary,
+  formatElementName,
+  formatElementPath,
+  formatElementSize,
+  type ElementSummary,
+} from './element-summary';
 
 function summary(overrides: Partial<ElementSummary> = {}): ElementSummary {
   return { tag: 'div', id: null, classes: [], width: 320, height: 480, ...overrides };
@@ -53,5 +59,22 @@ describe('formatElementName', () => {
 describe('formatElementSize', () => {
   it('formats width × height', () => {
     expect(formatElementSize(summary())).toBe('320 × 480');
+  });
+});
+
+describe('formatElementPath', () => {
+  const path = [
+    { tag: 'html', id: null, classes: [] },
+    { tag: 'body', id: null, classes: [] },
+    { tag: 'section', id: null, classes: ['hero'] },
+    { tag: 'div', id: null, classes: ['grid'] },
+  ];
+
+  it('shows the closest ancestors, with an ellipsis when some are hidden', () => {
+    expect(formatElementPath(path)).toBe('… › body › section.hero › div.grid');
+  });
+
+  it('shows the whole path when it is short', () => {
+    expect(formatElementPath(path.slice(2))).toBe('section.hero › div.grid');
   });
 });

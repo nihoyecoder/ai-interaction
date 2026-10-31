@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { browser, type Browser } from '#imports';
-import type { ElementSummary } from '@/core/element-summary';
+import type { ElementSnapshot } from '@/core/element-snapshot';
 import {
   INSPECTOR_PORT_NAME,
   type InspectorToPanel,
@@ -16,7 +16,7 @@ type Connected = {
   page: PageInfo;
   /** The user is choosing an element on the page. */
   picking: boolean;
-  selected: ElementSummary | null;
+  selected: ElementSnapshot | null;
 };
 
 export type Connection =
@@ -61,8 +61,8 @@ export function useInspectorConnection() {
         case 'page-info':
           setConnection({ status: 'connected', tabId, hostname, page: message.page, picking: false, selected: null });
           break;
-        case 'picker:selected':
-          setConnection(whileConnected((current) => ({ ...current, picking: false, selected: message.element })));
+        case 'selection:changed':
+          setConnection(whileConnected((current) => ({ ...current, picking: false, selected: message.snapshot })));
           break;
         case 'picker:cancelled':
           setConnection(whileConnected((current) => ({ ...current, picking: false })));
@@ -95,6 +95,20 @@ export function useInspectorConnection() {
     setConnection(whileConnected((current) => ({ ...current, picking: false })));
   }, []);
 
+  const selectParent = useCallback(() => {
+    if (portRef.current) send(portRef.current, { type: 'selection:parent' });
+  }, []);
+
+  const selectChild = useCallback(() => {
+    if (portRef.current) send(portRef.current, { type: 'selection:child' });
+  }, []);
+
+  const clearSelection = useCallback(() => {
+    if (!portRef.current) return;
+    send(portRef.current, { type: 'selection:clear' });
+    setConnection(whileConnected((current) => ({ ...current, selected: null })));
+  }, []);
+
   const disconnect = useCallback(() => {
     attemptRef.current += 1;
     portRef.current?.disconnect();
@@ -105,7 +119,16 @@ export function useInspectorConnection() {
   // Closing the panel ends the session. Chrome does this anyway; this makes it explicit.
   useEffect(() => () => portRef.current?.disconnect(), []);
 
-  return { connection, connect, startPicking, cancelPicking, disconnect };
+  return {
+    connection,
+    connect,
+    startPicking,
+    cancelPicking,
+    selectParent,
+    selectChild,
+    clearSelection,
+    disconnect,
+  };
 }
 
 /** Applies a change only while connected, e.g. a picker message that arrives as the session ends. */

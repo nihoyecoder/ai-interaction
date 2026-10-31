@@ -5,8 +5,10 @@ import {
   type PageInfo,
   type PanelToInspector,
 } from '@/messaging/protocol';
-import { summarizeElement } from './dom';
+import { firstVisualChildOf, parentOf } from './dom';
+import { flashElement } from './flash';
 import { startPicker } from './picker';
+import { readSnapshot } from './snapshot';
 
 /** Stop waiting if the side panel hasn't connected by then (for example, it was closed). */
 const CONNECT_TIMEOUT_MS = 10_000;
@@ -45,6 +47,25 @@ export function startInspector(): void {
 function runSession(port: Browser.runtime.Port): void {
   log('Connected to the side panel.');
   let stopPicker: (() => void) | null = null;
+  let stopFlash: (() => void) | null = null;
+  let selected: Element | null = null;
+  // Elements left behind by "Select parent", so "Select child" can go back down the same way.
+  let trail: Element[] = [];
+
+  const childOf = (element: Element): Element | null => {
+    const previous = trail.at(-1);
+    return previous && parentOf(previous) === element ? previous : firstVisualChildOf(element);
+  };
+
+  const select = (element: Element, highlight: boolean) => {
+    selected = element;
+    // Read before highlighting, so the snapshot never includes anything we added.
+    send(port, { type: 'selection:changed', snapshot: readSnapshot(element, childOf(element) !== null) });
+    if (highlight) {
+      stopFlash?.();
+      stopFlash = flashElement(element);
+    }
+  };
 
   const onMessage = (message: PanelToInspector) => {
     switch (message.type) {
@@ -52,11 +73,13 @@ function runSession(port: Browser.runtime.Port): void {
         send(port, { type: 'page-info', page: readPageInfo() });
         break;
       case 'picker:start':
+        stopFlash?.();
         stopPicker?.();
         stopPicker = startPicker({
           onSelect: (element) => {
             stopPicker = null;
-            send(port, { type: 'picker:selected', element: summarizeElement(element) });
+            trail = [];
+            select(element, false);
           },
           onCancel: () => {
             stopPicker = null;
@@ -68,6 +91,27 @@ function runSession(port: Browser.runtime.Port): void {
         stopPicker?.();
         stopPicker = null;
         break;
+      case 'selection:parent': {
+        const parent = selected && parentOf(selected);
+        if (!selected || !parent) break;
+        trail.push(selected);
+        select(parent, true);
+        break;
+      }
+      case 'selection:child': {
+        const child = selected && childOf(selected);
+        if (!child) break;
+        if (trail.at(-1) === child) trail.pop();
+        else trail = [];
+        select(child, true);
+        break;
+      }
+      case 'selection:clear':
+        stopFlash?.();
+        stopFlash = null;
+        selected = null;
+        trail = [];
+        break;
     }
   };
 
@@ -75,7 +119,11 @@ function runSession(port: Browser.runtime.Port): void {
   // Fires when the panel disconnects or closes. Session cleanup goes here.
   port.onDisconnect.addListener(() => {
     stopPicker?.();
+    stopFlash?.();
     stopPicker = null;
+    stopFlash = null;
+    selected = null;
+    trail = [];
     port.onMessage.removeListener(onMessage);
     log('Disconnected and cleaned up.');
   });

@@ -47,4 +47,9 @@ Notes:
 | `npm run build` | Creates a production build in `.output/chrome-mv3` |
 | `npm run compile` | Runs the TypeScript type check |
 | `npm test` | Runs the unit tests |
+| `npm run fixtures` | Serves the local test pages at http://127.0.0.1:5174 |
+
+## Test pages
+
+The `fixtures/` folder holds small local pages with known styles and interactions. Each page lists what the extension should report, so you can check its accuracy. To use them, run `npm run fixtures` in a second terminal and open http://127.0.0.1:5174.
 | `npm run zip` | Creates a zip ready for the Chrome Web Store |

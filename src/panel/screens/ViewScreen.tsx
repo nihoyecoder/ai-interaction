@@ -1,6 +1,6 @@
 import type { RestrictedReason } from '@/core/page-support';
 import { Button } from '../components/Button';
-import { ElementCard } from '../components/ElementCard';
+import { ElementDetails } from '../components/ElementDetails';
 import { NoticeBanner } from '../components/NoticeBanner';
 import { Screen } from '../components/Screen';
 import type { BadgeTone } from '../components/StatusBadge';
@@ -21,6 +21,9 @@ interface ViewScreenProps {
   onConnect: (tabId: number, hostname: string) => void;
   onSelectElement: () => void;
   onCancelPicking: () => void;
+  onSelectParent: () => void;
+  onSelectChild: () => void;
+  onClearSelection: () => void;
   onDisconnect: () => void;
   onGoToTab: (tabId: number) => void;
 }
@@ -30,6 +33,9 @@ export function ViewScreen({
   onConnect,
   onSelectElement,
   onCancelPicking,
+  onSelectParent,
+  onSelectChild,
+  onClearSelection,
   onDisconnect,
   onGoToTab,
 }: ViewScreenProps) {
@@ -107,20 +113,24 @@ export function ViewScreen({
 
     case 'selected':
       return (
-        <Screen
-          eyebrow={view.hostname}
-          title="Element selected"
-          actions={
-            <>
-              <Button variant="secondary" onClick={onSelectElement}>
-                Select another
-              </Button>
-              {disconnectButton}
-            </>
-          }
-        >
-          <ElementCard element={view.element} />
-        </Screen>
+        <div className="flex flex-col gap-4">
+          <Screen
+            eyebrow={view.hostname}
+            title="Element selected"
+            actions={
+              <>
+                <Button variant="secondary" onClick={onSelectElement}>
+                  Select another
+                </Button>
+                <Button variant="secondary" onClick={onClearSelection}>
+                  Clear
+                </Button>
+                {disconnectButton}
+              </>
+            }
+          />
+          <ElementDetails snapshot={view.snapshot} onSelectParent={onSelectParent} onSelectChild={onSelectChild} />
+        </div>
       );
 
     case 'away':
