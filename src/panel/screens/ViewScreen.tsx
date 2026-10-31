@@ -2,6 +2,8 @@ import type { RestrictedReason } from '@/core/page-support';
 import { Button } from '../components/Button';
 import { ElementDetails } from '../components/ElementDetails';
 import { NoticeBanner } from '../components/NoticeBanner';
+import { RecordingSummaryCard } from '../components/RecordingSummaryCard';
+import { RecordingTimer } from '../components/RecordingTimer';
 import { Screen } from '../components/Screen';
 import type { BadgeTone } from '../components/StatusBadge';
 import type { PanelView } from '../panel-view';
@@ -24,6 +26,8 @@ interface ViewScreenProps {
   onSelectParent: () => void;
   onSelectChild: () => void;
   onClearSelection: () => void;
+  onStartRecording: () => void;
+  onStopRecording: () => void;
   onDisconnect: () => void;
   onGoToTab: (tabId: number) => void;
 }
@@ -36,6 +40,8 @@ export function ViewScreen({
   onSelectParent,
   onSelectChild,
   onClearSelection,
+  onStartRecording,
+  onStopRecording,
   onDisconnect,
   onGoToTab,
 }: ViewScreenProps) {
@@ -111,6 +117,20 @@ export function ViewScreen({
         </Screen>
       );
 
+    case 'recording':
+      return (
+        <Screen
+          eyebrow={view.hostname}
+          title="Recording"
+          actions={<Button onClick={onStopRecording}>Stop</Button>}
+        >
+          <RecordingTimer startedAt={view.startedAt} />
+          <p className="mt-2">
+            Interact with the page as usual: scroll, hover, click. Recording stops by itself after 10 seconds.
+          </p>
+        </Screen>
+      );
+
     case 'selected':
       return (
         <div className="flex flex-col gap-4">
@@ -119,6 +139,7 @@ export function ViewScreen({
             title="Element selected"
             actions={
               <>
+                <Button onClick={onStartRecording}>{view.recording ? 'Record again' : 'Record'}</Button>
                 <Button variant="secondary" onClick={onSelectElement}>
                   Select another
                 </Button>
@@ -129,6 +150,7 @@ export function ViewScreen({
               </>
             }
           />
+          {view.recording && <RecordingSummaryCard recording={view.recording} />}
           <ElementDetails snapshot={view.snapshot} onSelectParent={onSelectParent} onSelectChild={onSelectChild} />
         </div>
       );
@@ -169,6 +191,8 @@ export function getBadge(view: PanelView): { label: string; tone: BadgeTone } {
       return { label: 'Connected', tone: 'positive' };
     case 'picking':
       return { label: 'Selecting', tone: 'active' };
+    case 'recording':
+      return { label: 'Recording', tone: 'recording' };
     case 'away':
       return { label: 'Other tab', tone: 'warning' };
   }

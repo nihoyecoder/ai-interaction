@@ -5,9 +5,11 @@ import {
   type PageInfo,
   type PanelToInspector,
 } from '@/messaging/protocol';
+import { createEmptyRecording } from '@/core/recording';
 import { firstVisualChildOf, parentOf } from './dom';
 import { flashElement } from './flash';
 import { startPicker } from './picker';
+import { startRecording, type ActiveRecording } from './recorder';
 import { readSnapshot } from './snapshot';
 
 /** Stop waiting if the side panel hasn't connected by then (for example, it was closed). */
@@ -48,6 +50,7 @@ function runSession(port: Browser.runtime.Port): void {
   log('Connected to the side panel.');
   let stopPicker: (() => void) | null = null;
   let stopFlash: (() => void) | null = null;
+  let recording: ActiveRecording | null = null;
   let selected: Element | null = null;
   // Elements left behind by "Select parent", so "Select child" can go back down the same way.
   let trail: Element[] = [];
@@ -67,12 +70,19 @@ function runSession(port: Browser.runtime.Port): void {
     }
   };
 
+  // Choosing a different element makes a recording in progress meaningless, so it's thrown away.
+  const discardRecording = () => {
+    recording?.discard();
+    recording = null;
+  };
+
   const onMessage = (message: PanelToInspector) => {
     switch (message.type) {
       case 'page-info:request':
         send(port, { type: 'page-info', page: readPageInfo() });
         break;
       case 'picker:start':
+        discardRecording();
         stopFlash?.();
         stopPicker?.();
         stopPicker = startPicker({
@@ -94,6 +104,7 @@ function runSession(port: Browser.runtime.Port): void {
       case 'selection:parent': {
         const parent = selected && parentOf(selected);
         if (!selected || !parent) break;
+        discardRecording();
         trail.push(selected);
         select(parent, true);
         break;
@@ -101,16 +112,34 @@ function runSession(port: Browser.runtime.Port): void {
       case 'selection:child': {
         const child = selected && childOf(selected);
         if (!child) break;
+        discardRecording();
         if (trail.at(-1) === child) trail.pop();
         else trail = [];
         select(child, true);
         break;
       }
       case 'selection:clear':
+        discardRecording();
         stopFlash?.();
         stopFlash = null;
         selected = null;
         trail = [];
+        break;
+      case 'recording:start':
+        if (recording) break;
+        if (!selected) {
+          send(port, { type: 'recording:finished', recording: createEmptyRecording('nothing-selected') });
+          break;
+        }
+        stopFlash?.();
+        stopFlash = null;
+        recording = startRecording(selected, (result) => {
+          recording = null;
+          send(port, { type: 'recording:finished', recording: result });
+        });
+        break;
+      case 'recording:stop':
+        recording?.stop();
         break;
     }
   };
@@ -118,6 +147,7 @@ function runSession(port: Browser.runtime.Port): void {
   port.onMessage.addListener(onMessage);
   // Fires when the panel disconnects or closes. Session cleanup goes here.
   port.onDisconnect.addListener(() => {
+    discardRecording();
     stopPicker?.();
     stopFlash?.();
     stopPicker = null;

@@ -1,4 +1,5 @@
 import type { ElementSnapshot } from '@/core/element-snapshot';
+import type { Recording } from '@/core/recording';
 import { getPageSupport, type RestrictedReason } from '@/core/page-support';
 import type { PageInfo } from '@/messaging/protocol';
 import type { ActiveTab } from './session/useActiveTab';
@@ -17,7 +18,8 @@ export type PanelView =
   | { kind: 'connecting'; hostname: string }
   | { kind: 'connected'; hostname: string; page: PageInfo }
   | { kind: 'picking'; hostname: string }
-  | { kind: 'selected'; hostname: string; snapshot: ElementSnapshot }
+  | { kind: 'recording'; hostname: string; startedAt: number }
+  | { kind: 'selected'; hostname: string; snapshot: ElementSnapshot; recording: Recording | null }
   | { kind: 'away'; tabId: number; hostname: string };
 
 /**
@@ -31,8 +33,13 @@ export function getPanelView(activeTab: ActiveTab | null, connection: Connection
     }
     const { hostname } = connection;
     if (connection.status === 'connecting') return { kind: 'connecting', hostname };
+    const { recorder } = connection;
+    if (recorder.status === 'recording') return { kind: 'recording', hostname, startedAt: recorder.startedAt };
     if (connection.picking) return { kind: 'picking', hostname };
-    if (connection.selected) return { kind: 'selected', hostname, snapshot: connection.selected };
+    if (connection.selected) {
+      const recording = recorder.status === 'done' ? recorder.recording : null;
+      return { kind: 'selected', hostname, snapshot: connection.selected, recording };
+    }
     return { kind: 'connected', hostname, page: connection.page };
   }
 

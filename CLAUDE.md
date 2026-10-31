@@ -9,7 +9,8 @@ A Chrome (Manifest V3) extension that captures a web interaction from a live pag
 - **M1.1 (scaffold) is done.** The user verified it in Chrome: the side panel opens from the toolbar and live reload works.
 - **M1.2 (page connection) is done.** The user verified it in Chrome, in both the dev and production builds.
 - **M2.1 (element picker) is done.** The user verified it in Chrome, on example.com and on a real animation-heavy site.
-- **M2.2 (element details card) is done.** The user verified it in Chrome against `fixtures/style-snapshot.html` (all expected values matched). **Phase 2 is complete. Next: Phase 3 (M3.1, recorder).** Its plan needs to be agreed before any code is written.
+- **M2.2 (element details card) is done.** The user verified it in Chrome against `fixtures/style-snapshot.html` (all expected values matched). Phase 2 is complete.
+- **M3.1 (recorder) is done.** The user verified it in Chrome against `fixtures/recording.html`, including the auto-stop and leaving the tab. **Next: M3.2, animation evidence.** Its plan needs to be agreed before any code is written.
 - The current side panel UI is a functional placeholder. The user will set the visual direction (design tokens) when the real screens are built, starting in M2.
 - Update this section and the roadmap checkboxes whenever a milestone is completed.
 
@@ -76,6 +77,19 @@ So the per-site permission fallback isn't needed.
   - A transform is decoded from Chrome's `matrix()` into translate · rotate · skewX · scale (`src/core/transform.ts`). That's one equivalent way to write it, so the raw matrix is always shown beside it. `matrix3d` isn't decoded yet.
   - Parent/Child: "Child" first goes back down the way the user came up, otherwise to the first visible child. Each step flashes the highlight for 1.5 s.
   - **Never scroll the page programmatically.** Scrolling can trigger the site's own scroll animations.
+- **Recorder (M3.1).**
+  - Product decisions: recording starts immediately when the user clicks Record, and a "● Recording" pill shows in the page's bottom-right corner.
+  - **Nothing is blocked while recording.** The page works normally. Listeners are passive, and they record only times, coordinates, and sizes. They never record keystrokes, form values, or page text.
+  - Each animation frame (`src/inspector/recorder.ts`) reads the following, storing only what changed since the previous frame:
+    - the box, `transform`, and `opacity` of the selected element and up to 20 descendants that have a box, closest levels first, sized before transforms
+    - page scroll, and the scroll of up to 10 other scrolling areas
+    - the pointer position
+    - the selected element's `:hover` state, read from Chrome's own state rather than guessed from coordinates
+  - Presses (`pointerdown` and `pointerup`) are timestamped with `event.timeStamp`.
+  - Recording stops on Stop, at the 10 s limit, or when the tab is hidden (the result is still delivered). It's discarded if the session ends or the selection changes.
+  - Recordings live in panel memory only. Nothing is stored or sent.
+  - `summarizeRecording` (`src/core/recording-summary.ts`) decides whether an element "changed on its own". Changes in transform, opacity, or size count. Movement counts only if it's neither zero (fixed or sticky elements) nor exactly the opposite of the page scroll (normal flow). Scrolling inside nested scroll areas still counts as movement for now.
+  - The highlight and the pill share `createTopLayer` (`src/inspector/layer.ts`).
 - `src/core` must not use extension APIs or the live DOM, so it stays unit-testable.
 - Entrypoint files in `src/entrypoints/` stay thin. The real logic lives in feature folders.
 - Main-world scripts (code that reads page JavaScript such as `window.gsap`) come later and need a deliberate decision. They must be read-only and minimal, and their output is treated as untrusted.
@@ -114,7 +128,8 @@ Known blind spots, which the UI and the recipes must communicate honestly:
 - Animations driven by JavaScript (GSAP, `requestAnimationFrame` loops, most spring animations) can only be Measured, not Observed.
 - Canvas and WebGL content.
 - Iframes. The inspector runs only in the top frame, so the picker can't select anything inside an iframe, and clicks inside an iframe still reach it while picking.
-- Elements with `pointer-events: none`, which are often decorative layers. They can't be hovered or picked yet.
+- Elements with `pointer-events: none`, which are often decorative layers. They can't be hovered or picked yet, though ↓ Child can reach them.
+- Recording: elements that start with `display: none` and appear later aren't tracked. Hidden tabs pause frame timing, so leaving the tab stops a recording.
 - Closed shadow roots.
 - Restricted pages: `chrome://`, the Chrome Web Store, other extensions, and the PDF viewer. `file://` pages work only if the user opts in.
 
@@ -163,7 +178,7 @@ Run these from the repo root:
 - [x] **M1.2** Page connection spike: inject into the active tab, round-trip messages over a port, and tear down on close. Also handle unsupported pages and verify the permission model.
 - [x] **M2.1** Picker: hover highlight overlay, click to select, Esc to cancel.
 - [x] **M2.2** Element snapshot: DOM path, curated computed styles, a clean inspector card, re-select and clear.
-- [ ] **M3.1** Recorder: start and stop with a time cap, plus event telemetry and frame sampling of geometry, transform, and opacity.
+- [x] **M3.1** Recorder: start and stop with a time cap, plus event telemetry and frame sampling of geometry, transform, and opacity.
 - [ ] **M3.2** Animation evidence: `getAnimations()`, transition and animation events, and class and style mutations.
 - [ ] **M3.3** Evidence model plus a simple timeline view and a JSON export for debugging.
 - [ ] **M4** Analysis in `core` (triggers, timing, easing fit, stagger), unit-tested against `fixtures/`.

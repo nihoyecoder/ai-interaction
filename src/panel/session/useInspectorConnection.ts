@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { browser, type Browser } from '#imports';
 import type { ElementSnapshot } from '@/core/element-snapshot';
+import type { Recording } from '@/core/recording';
 import {
   INSPECTOR_PORT_NAME,
   type InspectorToPanel,
@@ -17,7 +18,15 @@ type Connected = {
   /** The user is choosing an element on the page. */
   picking: boolean;
   selected: ElementSnapshot | null;
+  /** Recording of the selected element. Reset whenever the selection changes. */
+  recorder: RecorderState;
 };
+
+export type RecorderState =
+  | { status: 'idle' }
+  /** `startedAt` is the panel's clock, used only to show elapsed time. */
+  | { status: 'recording'; startedAt: number }
+  | { status: 'done'; recording: Recording };
 
 export type Connection =
   | { status: 'idle' }
@@ -59,10 +68,30 @@ export function useInspectorConnection() {
       if (portRef.current !== port) return;
       switch (message.type) {
         case 'page-info':
-          setConnection({ status: 'connected', tabId, hostname, page: message.page, picking: false, selected: null });
+          setConnection({
+            status: 'connected',
+            tabId,
+            hostname,
+            page: message.page,
+            picking: false,
+            selected: null,
+            recorder: { status: 'idle' },
+          });
           break;
         case 'selection:changed':
-          setConnection(whileConnected((current) => ({ ...current, picking: false, selected: message.snapshot })));
+          setConnection(
+            whileConnected((current) => ({
+              ...current,
+              picking: false,
+              selected: message.snapshot,
+              recorder: { status: 'idle' },
+            })),
+          );
+          break;
+        case 'recording:finished':
+          setConnection(
+            whileConnected((current) => ({ ...current, recorder: { status: 'done', recording: message.recording } })),
+          );
           break;
         case 'picker:cancelled':
           setConnection(whileConnected((current) => ({ ...current, picking: false })));
@@ -106,7 +135,18 @@ export function useInspectorConnection() {
   const clearSelection = useCallback(() => {
     if (!portRef.current) return;
     send(portRef.current, { type: 'selection:clear' });
-    setConnection(whileConnected((current) => ({ ...current, selected: null })));
+    setConnection(whileConnected((current) => ({ ...current, selected: null, recorder: { status: 'idle' } })));
+  }, []);
+
+  const startRecording = useCallback(() => {
+    if (!portRef.current) return;
+    send(portRef.current, { type: 'recording:start' });
+    setConnection(whileConnected((current) => ({ ...current, recorder: { status: 'recording', startedAt: Date.now() } })));
+  }, []);
+
+  // The recorder replies with `recording:finished`, which updates the state.
+  const stopRecording = useCallback(() => {
+    if (portRef.current) send(portRef.current, { type: 'recording:stop' });
   }, []);
 
   const disconnect = useCallback(() => {
@@ -127,6 +167,8 @@ export function useInspectorConnection() {
     selectParent,
     selectChild,
     clearSelection,
+    startRecording,
+    stopRecording,
     disconnect,
   };
 }

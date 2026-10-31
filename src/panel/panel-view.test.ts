@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createElementSnapshot, INITIAL_STYLE_VALUES } from '@/core/element-snapshot';
+import { createEmptyRecording } from '@/core/recording';
 import type { Connection } from './session/useInspectorConnection';
 import { getPanelView } from './panel-view';
 
@@ -24,7 +25,16 @@ const snapshot = createElementSnapshot({
 });
 
 function connected(overrides: Partial<Extract<Connection, { status: 'connected' }>> = {}): Connection {
-  return { status: 'connected', tabId: 1, hostname: 'example.com', page, picking: false, selected: null, ...overrides };
+  return {
+    status: 'connected',
+    tabId: 1,
+    hostname: 'example.com',
+    page,
+    picking: false,
+    selected: null,
+    recorder: { status: 'idle' },
+    ...overrides,
+  };
 }
 
 describe('getPanelView', () => {
@@ -72,7 +82,21 @@ describe('getPanelView', () => {
       kind: 'selected',
       hostname: 'example.com',
       snapshot,
+      recording: null,
     });
+  });
+
+  it('shows the recording screen while recording', () => {
+    expect(
+      getPanelView(exampleTab, connected({ selected: snapshot, recorder: { status: 'recording', startedAt: 5 } })),
+    ).toEqual({ kind: 'recording', hostname: 'example.com', startedAt: 5 });
+  });
+
+  it('shows the finished recording with the selected element', () => {
+    const recording = createEmptyRecording('user');
+    expect(
+      getPanelView(exampleTab, connected({ selected: snapshot, recorder: { status: 'done', recording } })),
+    ).toMatchObject({ kind: 'selected', recording });
   });
 
   it('shows picking again when choosing another element', () => {

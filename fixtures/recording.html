@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Test page: recording</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 32px;
+        font: 15px/1.5 system-ui, sans-serif;
+        color: #1f2937;
+        background: #f3f4f6;
+      }
+      header h1 {
+        margin: 0 0 4px;
+        font-size: 20px;
+      }
+      header p {
+        max-width: 640px;
+        margin: 0 0 32px;
+        color: #4b5563;
+      }
+      .item {
+        max-width: 720px;
+        margin: 0 0 32px;
+        padding: 24px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+      }
+      .item h2 {
+        margin: 0 0 6px;
+        font-size: 15px;
+      }
+      .steps {
+        margin: 0 0 16px;
+        color: #4b5563;
+        font-size: 14px;
+      }
+      .demo {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        align-items: center;
+        justify-content: center;
+        min-height: 160px;
+      }
+      .expected {
+        margin: 16px 0 0;
+        padding: 12px;
+        background: #f9fafb;
+        border-radius: 8px;
+        font: 12px/1.6 ui-monospace, monospace;
+        color: #374151;
+        white-space: pre-wrap;
+      }
+      .bottom-space {
+        height: 80vh;
+      }
+
+      /* 1. Hover card */
+      .hover-card {
+        width: 220px;
+        padding: 20px;
+        border-radius: 14px;
+        background: #6366f1;
+        color: #fff;
+        transition: transform 0.3s ease-out;
+      }
+      .hover-card:hover {
+        transform: translateY(-8px) scale(1.04);
+      }
+      .hover-card strong,
+      .hover-card span {
+        display: block;
+      }
+
+      /* 2. Toggle button */
+      .toggle {
+        padding: 10px 18px;
+        border: 0;
+        border-radius: 999px;
+        background: #10b981;
+        color: #fff;
+        font: inherit;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+      }
+      .toggle.is-on {
+        transform: translateX(40px);
+      }
+
+      /* 3. Scrolling */
+      .plain-block,
+      .scroll-block {
+        width: 200px;
+        height: 80px;
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+        color: #fff;
+        font-size: 13px;
+      }
+      .plain-block {
+        background: #f59e0b;
+      }
+      .scroll-block {
+        background: #0ea5e9;
+        animation: drift linear both;
+        animation-timeline: view();
+      }
+      @keyframes drift {
+        from {
+          transform: translateY(40px);
+        }
+        to {
+          transform: translateY(-40px);
+        }
+      }
+
+      /* 4. Staggered list */
+      .list {
+        display: flex;
+        gap: 10px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .list li {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        background: #ec4899;
+        opacity: 0.25;
+      }
+      .list.is-playing li {
+        animation: pop 0.5s ease-out both;
+      }
+      .list.is-playing li:nth-child(2) {
+        animation-delay: 0.1s;
+      }
+      .list.is-playing li:nth-child(3) {
+        animation-delay: 0.2s;
+      }
+      .list.is-playing li:nth-child(4) {
+        animation-delay: 0.3s;
+      }
+      .list.is-playing li:nth-child(5) {
+        animation-delay: 0.4s;
+      }
+      @keyframes pop {
+        from {
+          opacity: 0.25;
+          transform: translateY(16px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      .play {
+        padding: 8px 14px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        background: #fff;
+        font: inherit;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Test page: recording</h1>
+      <p>
+        Each section has an interaction with known behavior. Select the element, click Record, do what the steps say,
+        then click Stop and compare the recording summary with the "Expected" box. Times will vary a little, because
+        they depend on when you act.
+      </p>
+    </header>
+
+    <section class="item">
+      <h2>1. Hover card</h2>
+      <p class="steps">
+        Select the card. Click Record, move the pointer onto the card, wait a second, move it off, then click Stop.
+      </p>
+      <div class="demo">
+        <div class="hover-card"><strong>Hover me</strong><span>Lifts and grows on hover</span></div>
+      </div>
+      <p class="expected">The element changed between about A s and B s (from when you hovered until about 0.3 s after you left)
+2 of 2 tracked inner elements changed (they move with the card)
+You hovered the element 1× (no scrolling or clicks)</p>
+    </section>
+
+    <section class="item">
+      <h2>2. Toggle button</h2>
+      <p class="steps">Select the button. Click Record, click the button once (it should slide), then click Stop.</p>
+      <div class="demo"><button class="toggle" type="button">Toggle me</button></div>
+      <p class="expected">The button really slides while recording, because the page isn't blocked
+The element changed between about A s and A + 0.2 s
+You clicked 1× and hovered the element 1×</p>
+    </section>
+
+    <section class="item">
+      <h2>3. Scrolling</h2>
+      <p class="steps">
+        Select the orange block. Click Record, scroll the page down a little and back up, then click Stop. Then do the
+        same with the blue block.
+      </p>
+      <div class="demo">
+        <div class="plain-block">Plain block</div>
+        <div class="scroll-block">Scroll-driven block</div>
+      </div>
+      <p class="expected">Orange: The element didn't change on its own. You scrolled the page … px
+Blue:   The element changed between … (it moves as you scroll). You scrolled the page … px</p>
+    </section>
+
+    <section class="item">
+      <h2>4. Staggered list</h2>
+      <p class="steps">
+        Click any pink square, then click ↑ Parent to select the whole list. Click Record, click "Play", wait a
+        second, then click Stop.
+      </p>
+      <div class="demo">
+        <ul class="list">
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+        </ul>
+        <button class="play" type="button">Play</button>
+      </div>
+      <p class="expected">The element didn't change on its own
+5 of 5 tracked inner elements changed
+You clicked 1×</p>
+    </section>
+
+    <section class="item">
+      <h2>5. Limits</h2>
+      <p class="steps">
+        Select anything and click Record, then do nothing. It should stop by itself after 10 seconds. Record again,
+        switch to another tab, and come back.
+      </p>
+      <p class="expected">First:  10 s recorded … "Stopped at the 10-second limit."
+Second: "Stopped because you left the tab."</p>
+    </section>
+
+    <div class="bottom-space"></div>
+
+    <script>
+      document.querySelector('.toggle').addEventListener('click', (event) => {
+        event.currentTarget.classList.toggle('is-on');
+      });
+      document.querySelector('.play').addEventListener('click', () => {
+        const list = document.querySelector('.list');
+        list.classList.remove('is-playing');
+        void list.offsetWidth; // Restart the animation if it already ran.
+        list.classList.add('is-playing');
+      });
+    </script>
+  </body>
+</html>

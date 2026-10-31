@@ -32,15 +32,14 @@ export function ancestorsOf(element: Element): Element[] {
 /** Children that never show anything on the page. */
 const NON_VISUAL_TAGS = new Set(['base', 'head', 'link', 'meta', 'noscript', 'script', 'style', 'template', 'title']);
 
-/** The first child that can show something. Looks inside an open shadow root if there are no regular children. */
+/** Children that can show something: regular children first, then those in an open shadow root. */
+export function visualChildrenOf(element: Element): Element[] {
+  const children = [...Array.from(element.children), ...Array.from(element.shadowRoot?.children ?? [])];
+  return children.filter((child) => !NON_VISUAL_TAGS.has(child.localName));
+}
+
 export function firstVisualChildOf(element: Element): Element | null {
-  for (const container of [element, element.shadowRoot]) {
-    if (!container) continue;
-    for (const child of Array.from(container.children)) {
-      if (!NON_VISUAL_TAGS.has(child.localName)) return child;
-    }
-  }
-  return null;
+  return visualChildrenOf(element)[0] ?? null;
 }
 
 export function summarizeElement(element: Element, rect: DOMRect = element.getBoundingClientRect()): ElementSummary {
