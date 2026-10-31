@@ -1,7 +1,7 @@
 {
   "format": "ai-interaction/capture",
   "version": 1,
-  "exportedAt": "2026-10-31T14:58:31.458Z",
+  "exportedAt": "2026-10-31T15:12:32.044Z",
   "extensionVersion": "golden-harness",
   "page": {
     "hostname": "127.0.0.1"
@@ -100,7 +100,7 @@
     },
     "animations": [
       {
-        "t": 648.3,
+        "t": 709.8,
         "runningAtStart": false,
         "element": 0,
         "target": {
@@ -139,7 +139,7 @@
         ]
       },
       {
-        "t": 648.3,
+        "t": 709.8,
         "runningAtStart": false,
         "element": 0,
         "target": {
@@ -180,7 +180,7 @@
     ],
     "classChanges": [
       {
-        "t": 633.1,
+        "t": 705,
         "element": 0,
         "target": {
           "tag": "div",
@@ -201,8 +201,8 @@
   },
   "measured": {
     "recording": {
-      "durationMs": 2343.1,
-      "frameCount": 142,
+      "durationMs": 2367.2,
+      "frameCount": 144,
       "stopReason": "user",
       "viewport": {
         "width": 1280,
@@ -234,7 +234,7 @@
           "opacity": 0
         },
         {
-          "t": 231.7,
+          "t": 259.6,
           "element": 0,
           "x": 317,
           "y": 1103.63,
@@ -244,7 +244,7 @@
           "opacity": 0
         },
         {
-          "t": 298.4,
+          "t": 326.3,
           "element": 0,
           "x": 317,
           "y": 1063.63,
@@ -254,7 +254,7 @@
           "opacity": 0
         },
         {
-          "t": 365.1,
+          "t": 409.8,
           "element": 0,
           "x": 317,
           "y": 1023.63,
@@ -264,7 +264,7 @@
           "opacity": 0
         },
         {
-          "t": 431.7,
+          "t": 476.3,
           "element": 0,
           "x": 317,
           "y": 983.63,
@@ -274,7 +274,7 @@
           "opacity": 0
         },
         {
-          "t": 498.3,
+          "t": 543.2,
           "element": 0,
           "x": 317,
           "y": 943.63,
@@ -284,7 +284,7 @@
           "opacity": 0
         },
         {
-          "t": 565,
+          "t": 626.4,
           "element": 0,
           "x": 317,
           "y": 903.63,
@@ -294,7 +294,7 @@
           "opacity": 0
         },
         {
-          "t": 631.6,
+          "t": 692.9,
           "element": 0,
           "x": 317,
           "y": 863.63,
@@ -304,357 +304,367 @@
           "opacity": 0
         },
         {
-          "t": 665,
+          "t": 726.5,
           "element": 0,
           "x": 317,
           "y": 862.51,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 22.8841)",
-          "opacity": 0.0464938
+          "transform": "matrix(1, 0, 0, 1, 0, 22.8836)",
+          "opacity": 0.0465156
         },
         {
-          "t": 681.6,
+          "t": 743,
           "element": 0,
           "x": 317,
           "y": 861.44,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 21.8131)",
-          "opacity": 0.0911196
+          "transform": "matrix(1, 0, 0, 1, 0, 21.819)",
+          "opacity": 0.0908754
         },
         {
-          "t": 698.2,
+          "t": 759.7,
           "element": 0,
           "x": 317,
           "y": 860.39,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 20.7683)",
-          "opacity": 0.134655
+          "transform": "matrix(1, 0, 0, 1, 0, 20.7678)",
+          "opacity": 0.134676
         },
         {
-          "t": 714.9,
+          "t": 776.2,
           "element": 0,
           "x": 317,
-          "y": 819.37,
+          "y": 819.38,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 19.7405)",
-          "opacity": 0.17748
+          "transform": "matrix(1, 0, 0, 1, 0, 19.7522)",
+          "opacity": 0.176993
         },
         {
-          "t": 731.8,
+          "t": 793,
           "element": 0,
           "x": 317,
-          "y": 818.35,
+          "y": 818.37,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 18.7227)",
-          "opacity": 0.219889
+          "transform": "matrix(1, 0, 0, 1, 0, 18.7401)",
+          "opacity": 0.219164
         },
         {
-          "t": 748.4,
+          "t": 809.6,
           "element": 0,
           "x": 317,
-          "y": 817.37,
+          "y": 817.39,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 17.7438)",
-          "opacity": 0.260673
+          "transform": "matrix(1, 0, 0, 1, 0, 17.7609)",
+          "opacity": 0.259963
         },
         {
-          "t": 764.9,
+          "t": 826.2,
           "element": 0,
           "x": 317,
-          "y": 816.42,
+          "y": 816.43,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 16.791)",
-          "opacity": 0.300375
+          "transform": "matrix(1, 0, 0, 1, 0, 16.802)",
+          "opacity": 0.299918
         },
         {
-          "t": 781.7,
+          "t": 843,
           "element": 0,
           "x": 317,
-          "y": 775.47,
+          "y": 775.48,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 15.8411)",
-          "opacity": 0.339952
+          "transform": "matrix(1, 0, 0, 1, 0, 15.8519)",
+          "opacity": 0.339505
         },
         {
-          "t": 798.4,
+          "t": 859.6,
           "element": 0,
           "x": 317,
-          "y": 774.54,
+          "y": 774.56,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 14.9172)",
-          "opacity": 0.378451
+          "transform": "matrix(1, 0, 0, 1, 0, 14.9332)",
+          "opacity": 0.377785
         },
         {
-          "t": 815,
+          "t": 876.7,
           "element": 0,
           "x": 317,
-          "y": 773.64,
+          "y": 773.63,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 14.0188)",
-          "opacity": 0.415882
+          "transform": "matrix(1, 0, 0, 1, 0, 14.0077)",
+          "opacity": 0.416346
         },
         {
-          "t": 831.6,
+          "t": 893.3,
           "element": 0,
           "x": 317,
-          "y": 772.77,
+          "y": 772.75,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 13.1406)",
-          "opacity": 0.452474
+          "transform": "matrix(1, 0, 0, 1, 0, 13.1298)",
+          "opacity": 0.452927
         },
         {
-          "t": 848.3,
+          "t": 910,
           "element": 0,
           "x": 317,
-          "y": 731.9,
+          "y": 731.89,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 12.2777)",
-          "opacity": 0.488428
+          "transform": "matrix(1, 0, 0, 1, 0, 12.2671)",
+          "opacity": 0.48887
         },
         {
-          "t": 865.1,
+          "t": 926.7,
           "element": 0,
           "x": 317,
-          "y": 731.06,
+          "y": 731.05,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 11.4309)",
-          "opacity": 0.523714
+          "transform": "matrix(1, 0, 0, 1, 0, 11.4255)",
+          "opacity": 0.523938
         },
         {
-          "t": 881.7,
+          "t": 942.8,
           "element": 0,
           "x": 317,
-          "y": 730.24,
+          "y": 730.26,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 10.6154)",
-          "opacity": 0.557694
+          "transform": "matrix(1, 0, 0, 1, 0, 10.6344)",
+          "opacity": 0.556901
         },
         {
-          "t": 898.3,
+          "t": 959.7,
           "element": 0,
           "x": 317,
           "y": 729.45,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 9.82149)",
-          "opacity": 0.590771
+          "transform": "matrix(1, 0, 0, 1, 0, 9.82582)",
+          "opacity": 0.590591
         },
         {
-          "t": 915.1,
+          "t": 976.4,
           "element": 0,
           "x": 317,
           "y": 688.67,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 9.04064)",
-          "opacity": 0.623307
+          "transform": "matrix(1, 0, 0, 1, 0, 9.04944)",
+          "opacity": 0.62294
         },
         {
-          "t": 931.6,
+          "t": 993,
           "element": 0,
           "x": 317,
-          "y": 687.92,
+          "y": 687.93,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 8.29649)",
-          "opacity": 0.654313
+          "transform": "matrix(1, 0, 0, 1, 0, 8.30058)",
+          "opacity": 0.654143
         },
         {
-          "t": 948.4,
+          "t": 1009.7,
           "element": 0,
           "x": 317,
-          "y": 687.19,
+          "y": 687.2,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 7.56268)",
-          "opacity": 0.684888
+          "transform": "matrix(1, 0, 0, 1, 0, 7.57092)",
+          "opacity": 0.684545
         },
         {
-          "t": 964.8,
+          "t": 1026.1,
           "element": 0,
           "x": 317,
           "y": 686.5,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 6.87033)",
-          "opacity": 0.713736
+          "transform": "matrix(1, 0, 0, 1, 0, 6.8783)",
+          "opacity": 0.713404
         },
         {
-          "t": 981.6,
+          "t": 1042.8,
           "element": 0,
           "x": 317,
-          "y": 685.81,
+          "y": 645.82,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 6.18656)",
-          "opacity": 0.742227
+          "transform": "matrix(1, 0, 0, 1, 0, 6.19822)",
+          "opacity": 0.741741
         },
         {
-          "t": 998.4,
+          "t": 1059.5,
           "element": 0,
           "x": 317,
-          "y": 645.15,
+          "y": 645.17,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 5.52952)",
-          "opacity": 0.769604
+          "transform": "matrix(1, 0, 0, 1, 0, 5.54453)",
+          "opacity": 0.768978
         },
         {
-          "t": 1015,
+          "t": 1076.2,
           "element": 0,
           "x": 317,
-          "y": 644.53,
+          "y": 644.54,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 4.90761)",
-          "opacity": 0.795516
+          "transform": "matrix(1, 0, 0, 1, 0, 4.91831)",
+          "opacity": 0.79507
         },
         {
-          "t": 1031.5,
+          "t": 1092.8,
           "element": 0,
           "x": 317,
-          "y": 643.94,
+          "y": 643.95,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 4.31751)",
-          "opacity": 0.820104
+          "transform": "matrix(1, 0, 0, 1, 0, 4.32421)",
+          "opacity": 0.819824
         },
         {
-          "t": 1048.2,
+          "t": 1109.5,
           "element": 0,
           "x": 317,
-          "y": 643.38,
+          "y": 623.38,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 3.75002)",
-          "opacity": 0.843749
+          "transform": "matrix(1, 0, 0, 1, 0, 3.75637)",
+          "opacity": 0.843485
         },
         {
-          "t": 1065,
+          "t": 1126.3,
           "element": 0,
           "x": 317,
-          "y": 642.84,
+          "y": 622.84,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 3.21077)",
-          "opacity": 0.866218
+          "transform": "matrix(1, 0, 0, 1, 0, 3.21674)",
+          "opacity": 0.865969
         },
         {
-          "t": 1081.7,
+          "t": 1142.9,
           "element": 0,
           "x": 317,
-          "y": 622.33,
+          "y": 622.34,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 2.70776)",
-          "opacity": 0.887177
+          "transform": "matrix(1, 0, 0, 1, 0, 2.71627)",
+          "opacity": 0.886822
         },
         {
-          "t": 1098.4,
+          "t": 1159.7,
           "element": 0,
           "x": 317,
-          "y": 621.86,
+          "y": 621.87,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 2.23946)",
-          "opacity": 0.906689
+          "transform": "matrix(1, 0, 0, 1, 0, 2.24464)",
+          "opacity": 0.906474
         },
         {
-          "t": 1115,
+          "t": 1176.2,
           "element": 0,
           "x": 317,
           "y": 621.44,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 1.81026)",
-          "opacity": 0.924573
+          "transform": "matrix(1, 0, 0, 1, 0, 1.81748)",
+          "opacity": 0.924272
         },
         {
-          "t": 1131.7,
+          "t": 1193,
           "element": 0,
           "x": 317,
-          "y": 621.04,
+          "y": 621.05,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 1.41715)",
-          "opacity": 0.940952
+          "transform": "matrix(1, 0, 0, 1, 0, 1.42144)",
+          "opacity": 0.940773
         },
         {
-          "t": 1148.3,
+          "t": 1209.5,
           "element": 0,
           "x": 317,
-          "y": 620.69,
+          "y": 620.7,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 1.06723)",
-          "opacity": 0.955532
+          "transform": "matrix(1, 0, 0, 1, 0, 1.07301)",
+          "opacity": 0.955291
         },
         {
-          "t": 1164.9,
+          "t": 1226.1,
           "element": 0,
           "x": 317,
           "y": 620.39,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 0.76069)",
-          "opacity": 0.968305
+          "transform": "matrix(1, 0, 0, 1, 0, 0.765691)",
+          "opacity": 0.968096
         },
         {
-          "t": 1181.8,
+          "t": 1242.7,
           "element": 0,
           "x": 317,
-          "y": 620.12,
+          "y": 620.13,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 0.496297)",
-          "opacity": 0.979321
+          "transform": "matrix(1, 0, 0, 1, 0, 0.504707)",
+          "opacity": 0.978971
         },
         {
-          "t": 1198.3,
+          "t": 1259.4,
           "element": 0,
           "x": 317,
-          "y": 619.91,
+          "y": 619.92,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 0.288005)",
-          "opacity": 0.988
+          "transform": "matrix(1, 0, 0, 1, 0, 0.292354)",
+          "opacity": 0.987819
         },
         {
-          "t": 1215,
+          "t": 1276.1,
           "element": 0,
           "x": 317,
           "y": 619.76,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 0.131281)",
-          "opacity": 0.99453
+          "transform": "matrix(1, 0, 0, 1, 0, 0.134304)",
+          "opacity": 0.994404
         },
         {
-          "t": 1231.5,
+          "t": 1292.7,
           "element": 0,
           "x": 317,
           "y": 619.66,
           "width": 200,
           "height": 80,
-          "transform": "matrix(1, 0, 0, 1, 0, 0.0343221)",
-          "opacity": 0.99857
+          "transform": "matrix(1, 0, 0, 1, 0, 0.0355096)",
+          "opacity": 0.99852
         },
         {
-          "t": 1248.3,
+          "t": 1309.5,
+          "element": 0,
+          "x": 317,
+          "y": 619.63,
+          "width": 200,
+          "height": 80,
+          "transform": "matrix(1, 0, 0, 1, 0, 8.18767e-06)",
+          "opacity": 1
+        },
+        {
+          "t": 1326.1,
           "element": 0,
           "x": 317,
           "y": 619.63,
@@ -673,79 +683,79 @@
           "y": 2696
         },
         {
-          "t": 231.7,
+          "t": 259.6,
           "area": -1,
           "x": 0,
           "y": 2736
         },
         {
-          "t": 298.4,
+          "t": 326.3,
           "area": -1,
           "x": 0,
           "y": 2776
         },
         {
-          "t": 365.1,
+          "t": 409.8,
           "area": -1,
           "x": 0,
           "y": 2816
         },
         {
-          "t": 431.7,
+          "t": 476.3,
           "area": -1,
           "x": 0,
           "y": 2856
         },
         {
-          "t": 498.3,
+          "t": 543.2,
           "area": -1,
           "x": 0,
           "y": 2896
         },
         {
-          "t": 565,
+          "t": 626.4,
           "area": -1,
           "x": 0,
           "y": 2936
         },
         {
-          "t": 631.6,
+          "t": 692.9,
           "area": -1,
           "x": 0,
           "y": 2976
         },
         {
-          "t": 714.9,
+          "t": 776.2,
           "area": -1,
           "x": 0,
           "y": 3016
         },
         {
-          "t": 781.7,
+          "t": 843,
           "area": -1,
           "x": 0,
           "y": 3056
         },
         {
-          "t": 848.3,
+          "t": 910,
           "area": -1,
           "x": 0,
           "y": 3096
         },
         {
-          "t": 915.1,
+          "t": 976.4,
           "area": -1,
           "x": 0,
           "y": 3136
         },
         {
-          "t": 998.4,
+          "t": 1042.8,
           "area": -1,
           "x": 0,
           "y": 3176
         },
         {
-          "t": 1081.7,
+          "t": 1109.5,
           "area": -1,
           "x": 0,
           "y": 3196
@@ -756,12 +766,12 @@
       "presses": []
     },
     "summary": {
-      "durationMs": 2343.1,
-      "frameCount": 142,
+      "durationMs": 2367.2,
+      "frameCount": 144,
       "stopReason": "user",
       "elementChange": {
-        "from": 665,
-        "to": 1248.3
+        "from": 726.5,
+        "to": 1326.1
       },
       "changedDescendants": 0,
       "trackedDescendants": 0,

@@ -16,7 +16,8 @@ A Chrome (Manifest V3) extension that captures a web interaction from a live pag
 - Product decisions for Phase 4:
   - It's split into **M4.1** (trigger, motion, stagger) and **M4.2** (easing fit).
   - The user's exported captures from the test pages become golden tests in `fixtures/captures/`.
-- **M4.1 (analysis: trigger, motion, stagger) is done.** It's verified on **real Chrome recordings, made automatically** (`npm run golden:record`, 7 golden tests, stable across 3 fresh recordings). The user asked for this automation instead of testing by hand. **Not yet seen by a person:** the Analysis card's layout in the panel, and the Download JSON button (its M3.3 check may also have been skipped). Ask the user to glance at both during the next manual test. **Next: M4.2, easing fit.** Its plan needs to be agreed before any code is written.
+- **M4.1 (analysis: trigger, motion, stagger) is done.** It's verified on **real Chrome recordings, made automatically** (`npm run golden:record`, 7 golden tests, stable across 3 fresh recordings). The user asked for this automation instead of testing by hand. **Not yet seen by a person:** the Analysis card's layout in the panel, and the Download JSON button (its M3.3 check may also have been skipped). Ask the user to glance at both during the next manual test.
+- **M4.2 (easing fit) is done.** It's verified on real Chrome recordings of 7 known JavaScript easings (fixture section 8). All 14 golden tests are stable across 3 fresh recordings. Product decision: when nothing fits, say so honestly and give the closest custom cubic-bezier. **Phase 4 is complete. Next: Phase 5, the recipe (M5.1).** Its plan needs to be agreed before any code is written.
 - The current side panel UI is a functional placeholder. The user will set the visual direction (design tokens) when the real screens are built, starting in M2.
 - Update this section and the roadmap checkboxes whenever a milestone is completed.
 
@@ -161,6 +162,15 @@ So the per-site permission fallback isn't needed.
   - `src/core/analysis/golden.test.ts` checks meanings, not exact milliseconds, so re-recording doesn't break it.
   - **Re-record and re-run the tests after changing the recorder or the analysis.** When adding an interaction type, add a fixture section, a scenario, and a golden test.
   - The harness skips the side panel and the extension shell. Those still need a person in Chrome.
+- **Easing fit (M4.2)** (). It runs only for motions with no explaining animation from Chrome, because Chrome's easing is exact.
+  - The progress curve comes from the most telling changed property ( order). A reset jump at the end is excluded.
+  - **Candidates:**
+    - CSS keywords, listed first so they win ties
+    - GSAP power1–4, sine, expo, circ, back, elastic, and bounce, using their real formulas, with the usual cubic-bezier approximation as     - underdamped springs: a coarse grid, then the best one refined
+  - **Timing is fitted too.** The true start lies before the first point that **actually moved**, which skips reset frames. The true end can lie after the last visible change, for long tails. Both are searched by seeded coordinate descent down to 0.25 ms. A fixed grid stepped over elastic's narrow optimum.
+  - **Quality:** close is 2% RMS error or less, rough is 5% or less, otherwise none. None adds the closest , fitted together with the timing.
+  - **Duration:** the fitted end minus the fitted start, except for springs. A spring's end is undefined (any faster spring over a longer time matches), so springs use the measured duration.
+  - The fitted easing is always **Estimated**.
 - `src/core` must not use extension APIs or the live DOM, so it stays unit-testable.
 - Entrypoint files in `src/entrypoints/` stay thin. The real logic lives in feature folders.
 - Main-world scripts (code that reads page JavaScript such as `window.gsap`) come later and need a deliberate decision. They must be read-only and minimal, and their output is treated as untrusted.
@@ -254,7 +264,7 @@ Run these from the repo root:
 - [x] **M3.2** Animation evidence: `getAnimations()`, transition and animation events, and class and style mutations.
 - [x] **M3.3** Evidence model plus a simple timeline view and a JSON export for debugging.
 - [x] **M4.1** Analysis in `core`: trigger, motion segments, scroll links, stagger. Golden-tested on real Chrome recordings.
-- [ ] **M4.2** Easing fit for measured (JavaScript-driven) motion.
+- [x] **M4.2** Easing fit for measured (JavaScript-driven) motion. Golden-tested on 7 known easings.
 - [ ] **M5.1** Deterministic recipe, copyable, for one narrow target stack.
 - [ ] **M5.2** Compare our recipe with a plain "recording + prompt" baseline. Then decide whether an AI step adds value.
 - [ ] **M5.3** (Only if M5.2 justifies it) AI-enhanced recipe through a secure backend.

@@ -1,6 +1,7 @@
 import { formatNumber } from '../css-values';
 import type {
   Cause,
+  EasingFit,
   Mechanism,
   MotionProperty,
   MotionSegment,
@@ -178,6 +179,36 @@ export function describeChanges(changes: readonly PropertyChange[]): string {
   const sorted = [...changes].sort((a, b) => IMPORTANCE.indexOf(a.property) - IMPORTANCE.indexOf(b.property));
   const phrases = sorted.slice(0, 3).map(describeChange);
   return new Intl.ListFormat('en', { style: 'long', type: 'conjunction' }).format(phrases) || 'changes';
+}
+
+/**
+ * A fitted easing in words. For example "Easing ≈ power3.out, a close match (0.4% off)", with a detail
+ * line giving the CSS and GSAP equivalents.
+ */
+export function describeEasingFit(fit: EasingFit): { summary: string; detail: string | null } {
+  const { best } = fit;
+  const off = (error: number) => `${formatNumber(error * 100, 1)}% off`;
+  const label = best.spring ? `a spring (damping ratio ${formatNumber(best.spring.dampingRatio, 2)})` : best.name;
+
+  if (fit.quality === 'none') {
+    return {
+      summary: `No common easing fits. The closest is ${label}, ${off(best.error)}.`,
+      detail: fit.custom ? `Closest curve: ${fit.custom.css} (${off(fit.custom.error)})` : null,
+    };
+  }
+
+  const equivalents: string[] = [];
+  if (best.spring) {
+    equivalents.push(`Motion: type "spring", bounce ${formatNumber(1 - best.spring.dampingRatio, 2)}`);
+  } else {
+    if (best.css && best.css !== best.name) equivalents.push(`CSS ≈ ${best.css}`);
+    if (best.gsap && best.gsap !== best.name && best.gsap !== 'none') equivalents.push(`GSAP: ${best.gsap}`);
+    if (!best.css) equivalents.push('no CSS cubic-bezier equivalent');
+  }
+  return {
+    summary: `Easing ≈ ${label}, a ${fit.quality} match (${off(best.error)}).`,
+    detail: equivalents.length > 0 ? equivalents.join(' · ') : null,
+  };
 }
 
 /** "300 ms" when observed; "about 290 ms" or "about 1.2 s" when measured. */

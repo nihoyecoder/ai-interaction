@@ -67,6 +67,32 @@ export interface Cause {
   confidence: Confidence;
 }
 
+/** A known easing curve compared with a measured motion. */
+export interface EasingMatch {
+  /** For example "ease-out", "power3.out", or "spring". */
+  name: string;
+  /** The GSAP ease name, when there is one. */
+  gsap: string | null;
+  /** A CSS timing function: a keyword, or a cubic-bezier that approximates the curve. Null when CSS has no equivalent. */
+  css: string | null;
+  /** Root-mean-square difference from the measured curve, as a share of the motion (0.012 = 1.2%). */
+  error: number;
+  spring?: { dampingRatio: number };
+}
+
+/** The easing that best explains a measured motion. Always Estimated. */
+export interface EasingFit {
+  /** The property whose curve was fitted. */
+  property: MotionProperty;
+  /** close: within 2%. rough: within 5%. none: no common easing fits. */
+  quality: 'close' | 'rough' | 'none';
+  best: EasingMatch;
+  /** When no common easing fits: the closest cubic-bezier curve. */
+  custom: { css: string; error: number } | null;
+  /** The motion's duration according to the best-fitting curve. Usually closer than counting frames. */
+  durationMs: number;
+}
+
 /** One distinct motion of one element. */
 export interface MotionSegment {
   element: number;
@@ -85,6 +111,8 @@ export interface MotionSegment {
   /** The element had a real 3D transform, which isn't decoded yet. */
   has3dTransform: boolean;
   cause: Cause;
+  /** The fitted easing, for motions whose easing Chrome didn't report (e.g. JavaScript animations). */
+  easing: EasingFit | null;
 }
 
 export interface ScrollLinkedProperty {

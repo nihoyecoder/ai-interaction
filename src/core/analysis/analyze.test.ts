@@ -291,5 +291,7 @@ describe('analyzeCapture', () => {
     expect(segment?.cause).toMatchObject({ trigger: 'click', mechanism: 'javascript', confidence: 'high' });
     expect(segment?.durationCertainty).toBe('measured');
     expect(analysis.notes.some((note) => note.includes('one frame'))).toBe(true);
+    // 1 - (1 - p)^3 is GSAP's power2.out.
+    expect(segment?.easing).toMatchObject({ property: 'translateX', quality: 'close', best: { name: 'power2.out' } });
   });
 });

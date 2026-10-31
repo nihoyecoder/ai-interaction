@@ -1,0 +1,708 @@
+{
+  "format": "ai-interaction/capture",
+  "version": 1,
+  "exportedAt": "2026-10-31T15:12:07.050Z",
+  "extensionVersion": "golden-harness",
+  "page": {
+    "hostname": "127.0.0.1"
+  },
+  "labels": {
+    "observed": "Read directly from the browser: computed styles, Chrome’s animation list, and DOM changes.",
+    "measured": "Measured by sampling the page while recording: positions, sizes, transforms, and timing.",
+    "estimated": "Inferred from what was observed or measured. Treat as a likely explanation, not a fact."
+  },
+  "observed": {
+    "element": {
+      "element": {
+        "tag": "div",
+        "id": null,
+        "classes": [
+          "ease-box"
+        ],
+        "width": 48,
+        "height": 48
+      },
+      "namespace": "html",
+      "layoutSize": {
+        "width": 48,
+        "height": 48
+      },
+      "position": {
+        "x": 69,
+        "y": 4233
+      },
+      "path": [
+        {
+          "tag": "html",
+          "id": null,
+          "classes": []
+        },
+        {
+          "tag": "body",
+          "id": null,
+          "classes": []
+        },
+        {
+          "tag": "section",
+          "id": null,
+          "classes": [
+            "item"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": null,
+          "classes": [
+            "ease-track"
+          ]
+        }
+      ],
+      "styles": {
+        "display": "block",
+        "position": "absolute",
+        "overflow-x": "visible",
+        "overflow-y": "visible",
+        "z-index": "auto",
+        "transform": "none",
+        "translate": "none",
+        "rotate": "none",
+        "scale": "none",
+        "transform-origin": "24px 24px",
+        "perspective": "none",
+        "opacity": "1",
+        "filter": "none",
+        "clip-path": "none",
+        "border-top-left-radius": "10px",
+        "border-top-right-radius": "10px",
+        "border-bottom-right-radius": "10px",
+        "border-bottom-left-radius": "10px",
+        "transition-property": "all",
+        "transition-duration": "0s",
+        "transition-timing-function": "ease",
+        "transition-delay": "0s",
+        "animation-name": "none",
+        "animation-duration": "0s",
+        "animation-timing-function": "ease",
+        "animation-delay": "0s",
+        "animation-iteration-count": "1",
+        "animation-direction": "normal",
+        "animation-fill-mode": "none",
+        "animation-play-state": "running",
+        "animation-timeline": "auto"
+      },
+      "defaultsKey": {
+        "type": null,
+        "open": false
+      },
+      "hovered": false,
+      "canSelectParent": true,
+      "canSelectChild": false
+    },
+    "animations": [],
+    "classChanges": [],
+    "attributeChanges": [],
+    "styleWrites": [
+      {
+        "element": 0,
+        "target": {
+          "tag": "div",
+          "id": null,
+          "classes": [
+            "ease-box"
+          ]
+        },
+        "count": 51
+      }
+    ]
+  },
+  "measured": {
+    "recording": {
+      "durationMs": 1376.2,
+      "frameCount": 83,
+      "stopReason": "user",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "elements": [
+        {
+          "name": {
+            "tag": "div",
+            "id": null,
+            "classes": [
+              "ease-box"
+            ]
+          },
+          "depth": 0
+        }
+      ],
+      "scrollAreas": [],
+      "samples": [
+        {
+          "t": 0,
+          "element": 0,
+          "x": 69,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "none",
+          "opacity": 1
+        },
+        {
+          "t": 263.6,
+          "element": 0,
+          "x": 69,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 0, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 280.3,
+          "element": 0,
+          "x": 69,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, -4.57e-05, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 296.9,
+          "element": 0,
+          "x": 69,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 0.0049276, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 313.8,
+          "element": 0,
+          "x": 69.05,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 0.0526771, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 330.4,
+          "element": 0,
+          "x": 69.2,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 0.19842, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 346.8,
+          "element": 0,
+          "x": 69.49,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 0.489219, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 363.6,
+          "element": 0,
+          "x": 69.97,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 0.970841, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 380.6,
+          "element": 0,
+          "x": 70.72,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 1.71656, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 397,
+          "element": 0,
+          "x": 71.79,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 2.78521, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 414,
+          "element": 0,
+          "x": 73.17,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 4.16709, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 430.4,
+          "element": 0,
+          "x": 75.02,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 6.01696, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 447,
+          "element": 0,
+          "x": 77.26,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 8.2554, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 463.9,
+          "element": 0,
+          "x": 80.03,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 11.0264, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 480.4,
+          "element": 0,
+          "x": 83.42,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 14.4226, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 496.9,
+          "element": 0,
+          "x": 87.35,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 18.3499, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 513.9,
+          "element": 0,
+          "x": 91.93,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 22.9324, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 530.3,
+          "element": 0,
+          "x": 97.39,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 28.3923, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 546.8,
+          "element": 0,
+          "x": 103.42,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 34.4212, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 563.9,
+          "element": 0,
+          "x": 110.29,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 41.2924, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 580.4,
+          "element": 0,
+          "x": 118.32,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 49.3201, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 596.8,
+          "element": 0,
+          "x": 126.99,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 57.993, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 613.9,
+          "element": 0,
+          "x": 136.57,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 67.5658, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 630.2,
+          "element": 0,
+          "x": 147.61,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 78.6123, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 647,
+          "element": 0,
+          "x": 159.21,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 90.2051, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 663.6,
+          "element": 0,
+          "x": 172.29,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 103.292, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 680.3,
+          "element": 0,
+          "x": 186.41,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 117.409, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 696.8,
+          "element": 0,
+          "x": 201,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 131.996, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 713.6,
+          "element": 0,
+          "x": 214.26,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 145.256, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 730.3,
+          "element": 0,
+          "x": 226.59,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 157.594, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 747,
+          "element": 0,
+          "x": 237.75,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 168.748, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 763.6,
+          "element": 0,
+          "x": 247.85,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 178.848, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 780.4,
+          "element": 0,
+          "x": 256.89,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 187.893, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 796.9,
+          "element": 0,
+          "x": 265.09,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 196.091, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 813.9,
+          "element": 0,
+          "x": 272.26,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 203.258, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 830.1,
+          "element": 0,
+          "x": 278.78,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 209.78, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 847.1,
+          "element": 0,
+          "x": 284.23,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 215.229, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 863.8,
+          "element": 0,
+          "x": 289.2,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 220.198, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 880.3,
+          "element": 0,
+          "x": 293.38,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 224.384, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 896.9,
+          "element": 0,
+          "x": 296.9,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 227.896, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 913.7,
+          "element": 0,
+          "x": 299.85,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 230.853, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 930.4,
+          "element": 0,
+          "x": 302.31,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 233.311, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 946.9,
+          "element": 0,
+          "x": 304.27,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 235.273, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 963.6,
+          "element": 0,
+          "x": 305.79,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 236.792, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 980.3,
+          "element": 0,
+          "x": 306.96,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 237.957, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 997,
+          "element": 0,
+          "x": 307.8,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 238.799, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 1013.6,
+          "element": 0,
+          "x": 308.37,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 239.371, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 1030.3,
+          "element": 0,
+          "x": 308.72,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 239.722, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 1046.8,
+          "element": 0,
+          "x": 308.91,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 239.911, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 1063.6,
+          "element": 0,
+          "x": 308.99,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 239.986, 0)",
+          "opacity": 1
+        },
+        {
+          "t": 1080.3,
+          "element": 0,
+          "x": 309,
+          "y": 362.88,
+          "width": 48,
+          "height": 48,
+          "transform": "matrix(1, 0, 0, 1, 240, 0)",
+          "opacity": 1
+        }
+      ],
+      "pointer": [
+        {
+          "t": 263.6,
+          "x": 168.5,
+          "y": 449.7
+        }
+      ],
+      "scroll": [
+        {
+          "t": 0,
+          "area": -1,
+          "x": 0,
+          "y": 3870
+        }
+      ],
+      "startHovered": false,
+      "hover": [],
+      "presses": [
+        {
+          "t": 262.9,
+          "type": "press",
+          "x": 168.5,
+          "y": 449.7,
+          "onElement": false
+        },
+        {
+          "t": 263.2,
+          "type": "release",
+          "x": 168.5,
+          "y": 449.7,
+          "onElement": false
+        }
+      ]
+    },
+    "summary": {
+      "durationMs": 1376.2,
+      "frameCount": 83,
+      "stopReason": "user",
+      "elementChange": {
+        "from": 263.6,
+        "to": 1080.3
+      },
+      "changedDescendants": 0,
+      "trackedDescendants": 0,
+      "pageScrollPx": 0,
+      "scrolledAreas": 0,
+      "clicks": 1,
+      "hoverEnters": 0
+    }
+  },
+  "estimated": [
+    {
+      "text": "Inline styles changed 51 times on 1 element, which usually means JavaScript is animating it.",
+      "label": "Estimated"
+    }
+  ]
+}

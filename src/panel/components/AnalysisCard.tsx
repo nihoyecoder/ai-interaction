@@ -1,7 +1,13 @@
 import { useMemo, type ReactNode } from 'react';
 import { analyzeCapture } from '@/core/analysis/analyze';
-import { describeCause, describeScrollLink, formatDuration, formatPropertyChange } from '@/core/analysis/describe';
-import type { MotionSegment } from '@/core/analysis/types';
+import {
+  describeCause,
+  describeEasingFit,
+  describeScrollLink,
+  formatDuration,
+  formatPropertyChange,
+} from '@/core/analysis/describe';
+import type { EasingFit, MotionSegment } from '@/core/analysis/types';
 import { createCapture } from '@/core/capture';
 import { formatNumber } from '@/core/css-values';
 import type { ElementSnapshot } from '@/core/element-snapshot';
@@ -93,12 +99,23 @@ function SegmentBlock({ segment }: { segment: MotionSegment }) {
               animation ? `, easing ${overallEasing(animation)}` : ''
             }${segment.cutOff ? ' (still running when the recording stopped)' : ''}.`}
       </Line>
+      {segment.easing && <EasingLine fit={segment.easing} />}
       {segment.changes.map((change) => (
         <Line key={change.property} label="Measured" mono>
           {formatPropertyChange(change)}
         </Line>
       ))}
     </Block>
+  );
+}
+
+function EasingLine({ fit }: { fit: EasingFit }) {
+  const { summary, detail } = describeEasingFit(fit);
+  return (
+    <Line label="Estimated">
+      {summary}
+      {detail && <span className="mt-0.5 block font-mono text-[11px] text-neutral-500 dark:text-neutral-400">{detail}</span>}
+    </Line>
   );
 }
 

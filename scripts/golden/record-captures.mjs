@@ -53,8 +53,26 @@ async function wheel(page, total, step = 60, pauseMs = 40) {
   }
 }
 
+/** Section 8: click one easing button and record the box sliding. */
+const easingScenario = (ease, waitMs) => async (page, record) => {
+  const button = await center(page, `.ease-buttons button[data-ease="${ease}"]`);
+  await page.mouse.move(button.x, button.y + 60);
+  return record('.ease-box', async () => {
+    await wait(250);
+    await page.mouse.click(button.x, button.y);
+    await wait(waitMs);
+  });
+};
+
 /** Each scenario prepares the page, records one interaction, and returns the capture. */
 const scenarios = {
+  'ease-linear': easingScenario('linear', 1100),
+  'ease-power2-inout': easingScenario('power2.inOut', 1100),
+  'ease-power4-out': easingScenario('power4.out', 1100),
+  'ease-back-out': easingScenario('back.out', 1100),
+  'ease-elastic-out': easingScenario('elastic.out', 1300),
+  'ease-spring': easingScenario('spring', 1500),
+  'ease-custom': easingScenario('custom', 1100),
   'hover-card': async (page, record) => {
     const card = await center(page, '.hover-card');
     await page.mouse.move(5, 5);

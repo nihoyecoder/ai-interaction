@@ -21,6 +21,8 @@ describe('analysis of real recordings', () => {
     expect(analysis.followers).toBe(2);
     expect(analysis.segments.map((segment) => segment.cause.trigger)).toEqual(['hover-start', 'hover-end']);
     expect(analysis.segments.every((segment) => segment.cause.mechanism === 'css-transition')).toBe(true);
+    // Chrome reported the easing, so nothing is fitted.
+    expect(analysis.segments.every((segment) => segment.easing === null)).toBe(true);
   });
 
   it('toggle: a quick move-and-click counts as a click that adds a class', () => {
@@ -67,6 +69,8 @@ describe('analysis of real recordings', () => {
     expect(segment?.changes).toEqual([expect.objectContaining({ property: 'translateX', from: 0, to: 120, jumpedTo: 0 })]);
     expect(segment?.cause).toMatchObject({ trigger: 'click', mechanism: 'javascript' });
     expect(segment?.durationCertainty).toBe('measured');
+    // The test page uses 1 - (1 - p)^3, which is GSAP's power2.out.
+    expect(segment?.easing).toMatchObject({ quality: 'close', best: { name: 'power2.out' } });
   });
 
   it('reveal: scrolls into view, the page adds a class, a transition runs', () => {
@@ -81,3 +85,39 @@ describe('analysis of real recordings', () => {
     });
   });
 });
+
+/** The one gradual motion in a recording of the easing demo (section 8). */
+function easedMotion(name: string) {
+  const motions = analyzeGolden(name).segments.filter((segment) => !segment.instant);
+  expect(motions).toHaveLength(1);
+  return motions[0]!;
+}
+
+describe('easing of real JavaScript animations', () => {
+  it.each([
+    ['ease-linear', 'linear', 800],
+    ['ease-power2-inout', 'power2.inOut', 800],
+    ['ease-power4-out', 'power4.out', 800],
+    ['ease-back-out', 'back.out', 800],
+    ['ease-elastic-out', 'elastic.out', 1000],
+  ] as const)('%s is recognized as %s', (file, name, duration) => {
+    const motion = easedMotion(file);
+    expect(motion.easing).toMatchObject({ quality: 'close', best: { name } });
+    expect(Math.abs(motion.durationMs - duration)).toBeLessThanOrEqual(40);
+  });
+
+  it('recognizes a spring and estimates its damping', () => {
+    const motion = easedMotion('ease-spring');
+    expect(motion.easing?.best.name).toBe('spring');
+    expect(motion.easing?.best.spring?.dampingRatio).toBeGreaterThanOrEqual(0.25);
+    expect(motion.easing?.best.spring?.dampingRatio).toBeLessThanOrEqual(0.45);
+    expect(Math.abs(motion.durationMs - 1200)).toBeLessThanOrEqual(40);
+  });
+
+  it('says no common easing fits an unusual curve, and finds a close cubic-bezier', () => {
+    const motion = easedMotion('ease-custom');
+    expect(motion.easing?.quality).toBe('none');
+    expect(motion.easing?.custom?.error).toBeLessThan(0.02);
+  });
+});
+
