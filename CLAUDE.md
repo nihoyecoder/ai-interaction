@@ -23,7 +23,15 @@ A Chrome (Manifest V3) extension that captures a web interaction from a live pag
     - recipe tests on all 15 real captures
     - panel screenshots of real components with real data (`npm run preview:panel`), reviewed in light and dark mode
   - Not yet done: a person pasting a recipe into Claude Code. That's M5.2.
-  - **Next: M5.2, comparing our recipe with a plain recording-plus-prompt.** Its plan needs to be agreed before any code is written.
+- **M5.2 (recipe vs. baseline comparison) is in progress.** The user approved the plan.
+  - **The lab** is `D:\ai-interaction-lab`, its own Git repo. It's deliberately outside this repo, so Claude Code doesn't load this `CLAUDE.md` during the test.
+    - React + GSAP, with three experiment slots, each with A (recipe) and B (baseline)
+    - an A/B switcher at http://localhost:5173
+    - a step-by-step `README.md`, a `SCORECARD.md`, and a neutral `CLAUDE.md` shared by both versions
+  - **The baseline (B)** is a short description in the user's own words, two screenshots, and the link. Claude Code can't watch video.
+  - **Order: B is built before A**, so the recipe's numbers can't leak into the description.
+  - **Waiting for:** the user to pick 2–3 interactions. Suggested: a Stripe or Linear hover, an Apple or Framer reveal on scroll, and an Apple or Awwwards scroll-linked effect.
+  - **Then:** fill in the experiments' titles and links in the lab's `src/experiments/registry.ts`, and help the user run the test.
 - The current side panel UI is a functional placeholder. The user will set the visual direction (design tokens) when the real screens are built, starting in M2.
 - Update this section and the roadmap checkboxes whenever a milestone is completed.
 
