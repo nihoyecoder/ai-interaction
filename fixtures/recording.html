@@ -159,7 +159,15 @@
           transform: none;
         }
       }
-      .play {
+      /* 6. JavaScript animation */
+      .js-box {
+        width: 64px;
+        height: 64px;
+        border-radius: 12px;
+        background: #8b5cf6;
+      }
+      .play,
+      .animate {
         padding: 8px 14px;
         border: 1px solid #d1d5db;
         border-radius: 8px;
@@ -189,7 +197,9 @@
       </div>
       <p class="expected">The element changed between about A s and B s (from when you hovered until about 0.3 s after you left)
 2 of 2 tracked inner elements changed (they move with the card)
-You hovered the element 1× (no scrolling or clicks)</p>
+You hovered the element 1× (no scrolling or clicks)
+Evidence: CSS transition: transform · 300 ms · ease-out · started at A s
+          (and a second one when you moved off)</p>
     </section>
 
     <section class="item">
@@ -198,7 +208,9 @@ You hovered the element 1× (no scrolling or clicks)</p>
       <div class="demo"><button class="toggle" type="button">Toggle me</button></div>
       <p class="expected">The button really slides while recording, because the page isn't blocked
 The element changed between about A s and A + 0.2 s
-You clicked 1× and hovered the element 1×</p>
+You clicked 1× and hovered the element 1×
+Evidence: Class "is-on" added at A s
+          CSS transition: transform · 200 ms · ease · started at A s</p>
     </section>
 
     <section class="item">
@@ -212,7 +224,9 @@ You clicked 1× and hovered the element 1×</p>
         <div class="scroll-block">Scroll-driven block</div>
       </div>
       <p class="expected">Orange: The element didn't change on its own. You scrolled the page … px
-Blue:   The element changed between … (it moves as you scroll). You scrolled the page … px</p>
+        Evidence: "No CSS animations, class changes, or inline-style changes were seen."
+Blue:   The element changed between … (it moves as you scroll). You scrolled the page … px
+        Evidence: CSS animation: drift · auto · linear · scroll-driven · already running</p>
     </section>
 
     <section class="item">
@@ -233,7 +247,25 @@ Blue:   The element changed between … (it moves as you scroll). You scrolled t
       </div>
       <p class="expected">The element didn't change on its own
 5 of 5 tracked inner elements changed
-You clicked 1×</p>
+You clicked 1×
+Evidence: Class "is-playing" added at A s
+          CSS animation: pop · 500 ms · ease-out · started at A s on li
+          …four more, with delay 100 ms, 200 ms, 300 ms, and 400 ms</p>
+    </section>
+
+    <section class="item">
+      <h2>6. JavaScript animation</h2>
+      <p class="steps">
+        Select the purple box. Click Record, click "Animate" (the box slides for one second), wait, then click Stop.
+      </p>
+      <div class="demo">
+        <div class="js-box"></div>
+        <button class="animate" type="button">Animate</button>
+      </div>
+      <p class="expected">The element changed between about A s and A + 1 s
+Evidence: Inline styles changed about 60 times on 1 element, which usually
+          means JavaScript is animating it.  [Estimated]
+          (No CSS transition or animation: this one is pure JavaScript.)</p>
     </section>
 
     <section class="item">
@@ -257,6 +289,19 @@ Second: "Stopped because you left the tab."</p>
         list.classList.remove('is-playing');
         void list.offsetWidth; // Restart the animation if it already ran.
         list.classList.add('is-playing');
+      });
+      // Moves the box with requestAnimationFrame, writing an inline style every frame, like GSAP does.
+      document.querySelector('.animate').addEventListener('click', () => {
+        const box = document.querySelector('.js-box');
+        const start = performance.now();
+        const step = (now) => {
+          const progress = Math.min((now - start) / 1000, 1);
+          const eased = 1 - (1 - progress) ** 3;
+          box.style.transform = `translateX(${Math.round(eased * 120)}px)`;
+          if (progress < 1) requestAnimationFrame(step);
+          else requestAnimationFrame(() => (box.style.transform = ''));
+        };
+        requestAnimationFrame(step);
       });
     </script>
   </body>

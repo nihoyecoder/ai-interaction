@@ -10,7 +10,8 @@ A Chrome (Manifest V3) extension that captures a web interaction from a live pag
 - **M1.2 (page connection) is done.** The user verified it in Chrome, in both the dev and production builds.
 - **M2.1 (element picker) is done.** The user verified it in Chrome, on example.com and on a real animation-heavy site.
 - **M2.2 (element details card) is done.** The user verified it in Chrome against `fixtures/style-snapshot.html` (all expected values matched). Phase 2 is complete.
-- **M3.1 (recorder) is done.** The user verified it in Chrome against `fixtures/recording.html`, including the auto-stop and leaving the tab. **Next: M3.2, animation evidence.** Its plan needs to be agreed before any code is written.
+- **M3.1 (recorder) is done.** The user verified it in Chrome against `fixtures/recording.html`, including the auto-stop and leaving the tab.
+- **M3.2 (animation evidence) is done.** The user verified it in Chrome against `fixtures/recording.html` (sections 1–4 and 6). **Next: M3.3, evidence model, timeline view, and JSON export.** Its plan needs to be agreed before any code is written.
 - The current side panel UI is a functional placeholder. The user will set the visual direction (design tokens) when the real screens are built, starting in M2.
 - Update this section and the roadmap checkboxes whenever a milestone is completed.
 
@@ -90,6 +91,15 @@ So the per-site permission fallback isn't needed.
   - Recordings live in panel memory only. Nothing is stored or sent.
   - `summarizeRecording` (`src/core/recording-summary.ts`) decides whether an element "changed on its own". Changes in transform, opacity, or size count. Movement counts only if it's neither zero (fixed or sticky elements) nor exactly the opposite of the page scroll (normal flow). Scrolling inside nested scroll areas still counts as movement for now.
   - The highlight and the pill share `createTopLayer` (`src/inspector/layer.ts`).
+- **Animation evidence (M3.2).**
+  - Each frame of a recording also checks `selected.getAnimations({ subtree: true })`. That covers inner elements beyond the 20 tracked ones, and pseudo-elements. Each new animation is noted once (`src/inspector/animations.ts`) with its kind (CSS transition, CSS animation, or Web Animation), name, timing, keyframes, whether it's scroll-driven (it doesn't run on the document timeline), and whether it was already running at the start.
+  - CSS animations report "linear" timing and put their easing on the keyframes. The evidence uses the first keyframe's easing in that case.
+  - A `MutationObserver` on the selected element (subtree, attributes, old values) records three things, capped:
+    - class names added or removed (`diffClasses`)
+    - other attributes' **names only, never values**
+    - inline-style change **counts only**
+  - `describeEvidence` (`src/core/recording-evidence.ts`) turns these into lines labeled Observed or Estimated. "JavaScript is animating it" is Estimated, and appears at 10 or more inline-style changes.
+  - Product decision: detecting animation libraries in the page's main world (GSAP, Framer Motion, Lenis) is deferred.
 - `src/core` must not use extension APIs or the live DOM, so it stays unit-testable.
 - Entrypoint files in `src/entrypoints/` stay thin. The real logic lives in feature folders.
 - Main-world scripts (code that reads page JavaScript such as `window.gsap`) come later and need a deliberate decision. They must be read-only and minimal, and their output is treated as untrusted.
@@ -129,7 +139,7 @@ Known blind spots, which the UI and the recipes must communicate honestly:
 - Canvas and WebGL content.
 - Iframes. The inspector runs only in the top frame, so the picker can't select anything inside an iframe, and clicks inside an iframe still reach it while picking.
 - Elements with `pointer-events: none`, which are often decorative layers. They can't be hovered or picked yet, though ↓ Child can reach them.
-- Recording: elements that start with `display: none` and appear later aren't tracked. Hidden tabs pause frame timing, so leaving the tab stops a recording.
+- Recording: elements that start with `display: none` and appear later aren't tracked. Hidden tabs pause frame timing, so leaving the tab stops a recording. A transition that starts and ends between two frames (under about 16 ms) can be missed. JavaScript libraries' own settings (GSAP timelines, for example) are invisible: only their effects are recorded.
 - Closed shadow roots.
 - Restricted pages: `chrome://`, the Chrome Web Store, other extensions, and the PDF viewer. `file://` pages work only if the user opts in.
 
@@ -179,7 +189,7 @@ Run these from the repo root:
 - [x] **M2.1** Picker: hover highlight overlay, click to select, Esc to cancel.
 - [x] **M2.2** Element snapshot: DOM path, curated computed styles, a clean inspector card, re-select and clear.
 - [x] **M3.1** Recorder: start and stop with a time cap, plus event telemetry and frame sampling of geometry, transform, and opacity.
-- [ ] **M3.2** Animation evidence: `getAnimations()`, transition and animation events, and class and style mutations.
+- [x] **M3.2** Animation evidence: `getAnimations()`, transition and animation events, and class and style mutations.
 - [ ] **M3.3** Evidence model plus a simple timeline view and a JSON export for debugging.
 - [ ] **M4** Analysis in `core` (triggers, timing, easing fit, stagger), unit-tested against `fixtures/`.
 - [ ] **M5.1** Deterministic recipe, copyable, for one narrow target stack.

@@ -1,8 +1,15 @@
 import { createElementName, type ElementName } from '@/core/element-summary';
 import {
+  capAttributeName,
+  diffClasses,
+  MAX_ANIMATION_RECORDS,
+  MAX_CHANGE_RECORDS,
   MAX_RECORDING_MS,
   MAX_SCROLL_AREAS,
   MAX_TRACKED_DESCENDANTS,
+  type AnimationRecord,
+  type AttributeChange,
+  type ClassChange,
   type ElementSample,
   type HoverChange,
   type PointerSample,
@@ -11,6 +18,7 @@ import {
   type ScrollSample,
   type StopReason,
 } from '@/core/recording';
+import { readAnimation } from './animations';
 import { visualChildrenOf } from './dom';
 import { showRecordingIndicator } from './indicator';
 
@@ -51,6 +59,16 @@ export function startRecording(selected: Element, onFinish: (recording: Recordin
   let frameCount = 0;
   let frame = 0;
   let finished = false;
+
+  // Evidence of what caused the motion.
+  const trackedIndex = new Map(tracked.map(({ element }, index) => [element, index]));
+  const indexOf = (element: Element) => trackedIndex.get(element) ?? -1;
+  const seenAnimations = new WeakSet<Animation>();
+  const animations: AnimationRecord[] = [];
+  const classChanges: ClassChange[] = [];
+  const attributeChanges: AttributeChange[] = [];
+  const styleWrites = new Map<Element, number>();
+  const mutations = new MutationObserver((records) => recordMutations(records));
 
   const indicator = showRecordingIndicator();
   const listeners = new AbortController();
@@ -93,9 +111,51 @@ export function startRecording(selected: Element, onFinish: (recording: Recordin
     { signal: listeners.signal },
   );
 
+  /** Notes every animation on the element or inside it the first time it's seen. */
+  function collectAnimations(t: number, atStart: boolean) {
+    for (const animation of selected.getAnimations({ subtree: true })) {
+      if (animations.length >= MAX_ANIMATION_RECORDS) return;
+      if (seenAnimations.has(animation)) continue;
+      seenAnimations.add(animation);
+      const record = readAnimation(animation, t, atStart, indexOf);
+      if (record) animations.push(record);
+    }
+  }
+
+  /** Class names added or removed, other attributes' names, and inline-style change counts. */
+  function recordMutations(records: MutationRecord[]) {
+    const t = sinceStart(performance.now());
+    const classRecords: MutationRecord[] = [];
+    for (const record of records) {
+      if (record.type !== 'attributes' || !(record.target instanceof Element) || !record.attributeName) continue;
+      if (record.attributeName === 'style') {
+        styleWrites.set(record.target, (styleWrites.get(record.target) ?? 0) + 1);
+      } else if (record.attributeName === 'class') {
+        classRecords.push(record);
+      } else if (attributeChanges.length < MAX_CHANGE_RECORDS) {
+        attributeChanges.push({ t, ...reference(record.target), name: capAttributeName(record.attributeName) });
+      }
+    }
+    // Several class changes can arrive together. Each one ends where the next change to the same element begins.
+    classRecords.forEach((record, index) => {
+      const target = record.target as Element;
+      const next = classRecords.slice(index + 1).find((later) => later.target === target);
+      const after = next ? (next.oldValue ?? '') : (target.getAttribute('class') ?? '');
+      const { added, removed } = diffClasses(record.oldValue ?? '', after);
+      if ((added.length > 0 || removed.length > 0) && classChanges.length < MAX_CHANGE_RECORDS) {
+        classChanges.push({ t, ...reference(target), added, removed });
+      }
+    });
+  }
+
+  function reference(element: Element) {
+    return { element: indexOf(element), target: nameOf(element) };
+  }
+
   /** Reads everything once. Stores only what changed since the previous frame. */
-  function sample(t: number) {
+  function sample(t: number, atStart = false) {
     frameCount++;
+    collectAnimations(t, atStart);
 
     const pageScroll = { x: round(window.scrollX, 1), y: round(window.scrollY, 1) };
     if (!lastPageScroll || pageScroll.x !== lastPageScroll.x || pageScroll.y !== lastPageScroll.y) {
@@ -154,6 +214,7 @@ export function startRecording(selected: Element, onFinish: (recording: Recordin
 
   function cleanUp() {
     listeners.abort();
+    mutations.disconnect();
     cancelAnimationFrame(frame);
     indicator.destroy();
   }
@@ -161,6 +222,7 @@ export function startRecording(selected: Element, onFinish: (recording: Recordin
   function finish(stopReason: StopReason) {
     if (finished) return;
     finished = true;
+    recordMutations(mutations.takeRecords());
     cleanUp();
     onFinish({
       durationMs: stopReason === 'time-limit' ? MAX_RECORDING_MS : sinceStart(performance.now()),
@@ -175,11 +237,20 @@ export function startRecording(selected: Element, onFinish: (recording: Recordin
       startHovered,
       hover,
       presses,
+      animations,
+      classChanges,
+      attributeChanges,
+      styleWrites: [...styleWrites]
+        .map(([element, count]) => ({ ...reference(element), count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, MAX_TRACKED_DESCENDANTS),
     });
   }
 
+  // Watch the element and everything inside it. Old values are needed to tell which classes changed.
+  mutations.observe(selected, { subtree: true, attributes: true, attributeOldValue: true });
   // A first sample right away records where everything started.
-  sample(0);
+  sample(0, true);
   frame = requestAnimationFrame(onFrame);
 
   return {
