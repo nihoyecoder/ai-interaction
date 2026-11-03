@@ -1,21 +1,13 @@
 import { browser, type Browser } from '#imports';
-import {
-  INSPECTOR_PORT_NAME,
-  type InspectorToPanel,
-  type PageInfo,
-  type PanelToInspector,
-} from '@/messaging/protocol';
-import { createEmptyRecording } from '@/core/recording';
-import { firstVisualChildOf, parentOf } from './dom';
+import type { PickMode } from '@/core/selection';
+import { INSPECTOR_PORT_NAME, type InspectorToPanel, type PanelToInspector } from '@/messaging/protocol';
 import { flashElement } from './flash';
-import { startPicker } from './picker';
-import { startRecording, type ActiveRecording } from './recorder';
-import { readSnapshot } from './snapshot';
+import { startPicker, type Picker } from './picker';
+import { readElementSelection, readPageSelection } from './selection';
+import { narrowerThan, trailBackTo, widerThan } from './targets';
 
 /** Stop waiting if the side panel hasn't connected by then (for example, it was closed). */
 const CONNECT_TIMEOUT_MS = 10_000;
-/** Page text is untrusted and may be personal, so keep only a short label. */
-const MAX_TITLE_LENGTH = 120;
 /** Marks that an injected copy is already waiting for the panel to connect. */
 const WAITING_FLAG = '__aiInteractionInspectorWaiting';
 
@@ -48,98 +40,93 @@ export function startInspector(): void {
 
 function runSession(port: Browser.runtime.Port): void {
   log('Connected to the side panel.');
-  let stopPicker: (() => void) | null = null;
+  let picker: Picker | null = null;
   let stopFlash: (() => void) | null = null;
-  let recording: ActiveRecording | null = null;
-  let selected: Element | null = null;
-  // Elements left behind by "Select parent", so "Select child" can go back down the same way.
+  let selected: { element: Element; scope: PickMode } | null = null;
+  // Elements left behind by "Wider", so "Narrower" can go back down the same way.
   let trail: Element[] = [];
 
-  const childOf = (element: Element): Element | null => {
-    const previous = trail.at(-1);
-    return previous && parentOf(previous) === element ? previous : firstVisualChildOf(element);
-  };
+  const narrowerOf = (element: Element) => trailBackTo(element, trail) ?? narrowerThan(element);
 
-  const select = (element: Element, highlight: boolean) => {
-    selected = element;
-    // Read before highlighting, so the snapshot never includes anything we added.
-    send(port, { type: 'selection:changed', snapshot: readSnapshot(element, childOf(element) !== null) });
+  const select = (element: Element, scope: PickMode, highlight: boolean) => {
+    selected = { element, scope };
+    // Read before highlighting, so nothing we add is part of what's read.
+    const steps = { canWiden: widerThan(element) !== null, canNarrow: narrowerOf(element) !== null };
+    send(port, { type: 'selection:changed', selection: readElementSelection(element, scope, steps) });
     if (highlight) {
       stopFlash?.();
       stopFlash = flashElement(element);
     }
   };
 
-  // Choosing a different element makes a recording in progress meaningless, so it's thrown away.
-  const discardRecording = () => {
-    recording?.discard();
-    recording = null;
+  const stopPicking = () => {
+    picker?.stop();
+    picker = null;
+  };
+
+  const clearFlash = () => {
+    stopFlash?.();
+    stopFlash = null;
   };
 
   const onMessage = (message: PanelToInspector) => {
     switch (message.type) {
-      case 'page-info:request':
-        send(port, { type: 'page-info', page: readPageInfo() });
+      case 'hello':
+        send(port, { type: 'ready' });
         break;
-      case 'picker:start':
-        discardRecording();
-        stopFlash?.();
-        stopPicker?.();
-        stopPicker = startPicker({
+      case 'picker:start': {
+        const { mode } = message;
+        clearFlash();
+        stopPicking();
+        picker = startPicker({
+          mode,
           onSelect: (element) => {
-            stopPicker = null;
+            picker = null;
             trail = [];
-            select(element, false);
+            select(element, mode, false);
           },
           onCancel: () => {
-            stopPicker = null;
+            picker = null;
             send(port, { type: 'picker:cancelled' });
           },
         });
         break;
+      }
       case 'picker:cancel':
-        stopPicker?.();
-        stopPicker = null;
+        stopPicking();
         break;
-      case 'selection:parent': {
-        const parent = selected && parentOf(selected);
-        if (!selected || !parent) break;
-        discardRecording();
-        trail.push(selected);
-        select(parent, true);
+      case 'picker:widen':
+        picker?.widen();
+        break;
+      case 'picker:narrow':
+        picker?.narrow();
+        break;
+      case 'selection:wider': {
+        const wider = selected && widerThan(selected.element);
+        if (!selected || !wider) break;
+        trail.push(selected.element);
+        select(wider, selected.scope, true);
         break;
       }
-      case 'selection:child': {
-        const child = selected && childOf(selected);
-        if (!child) break;
-        discardRecording();
-        if (trail.at(-1) === child) trail.pop();
+      case 'selection:narrower': {
+        const narrower = selected && narrowerOf(selected.element);
+        if (!selected || !narrower) break;
+        if (trail.at(-1) === narrower) trail.pop();
         else trail = [];
-        select(child, true);
+        select(narrower, selected.scope, true);
         break;
       }
-      case 'selection:clear':
-        discardRecording();
-        stopFlash?.();
-        stopFlash = null;
+      case 'selection:page':
+        stopPicking();
+        clearFlash();
         selected = null;
         trail = [];
+        send(port, { type: 'selection:changed', selection: readPageSelection() });
         break;
-      case 'recording:start':
-        if (recording) break;
-        if (!selected) {
-          send(port, { type: 'recording:finished', recording: createEmptyRecording('nothing-selected') });
-          break;
-        }
-        stopFlash?.();
-        stopFlash = null;
-        recording = startRecording(selected, (result) => {
-          recording = null;
-          send(port, { type: 'recording:finished', recording: result });
-        });
-        break;
-      case 'recording:stop':
-        recording?.stop();
+      case 'selection:clear':
+        clearFlash();
+        selected = null;
+        trail = [];
         break;
     }
   };
@@ -147,11 +134,8 @@ function runSession(port: Browser.runtime.Port): void {
   port.onMessage.addListener(onMessage);
   // Fires when the panel disconnects or closes. Session cleanup goes here.
   port.onDisconnect.addListener(() => {
-    discardRecording();
-    stopPicker?.();
-    stopFlash?.();
-    stopPicker = null;
-    stopFlash = null;
+    stopPicking();
+    clearFlash();
     selected = null;
     trail = [];
     port.onMessage.removeListener(onMessage);
@@ -161,10 +145,6 @@ function runSession(port: Browser.runtime.Port): void {
 
 function send(port: Browser.runtime.Port, message: InspectorToPanel): void {
   port.postMessage(message);
-}
-
-function readPageInfo(): PageInfo {
-  return { title: document.title.slice(0, MAX_TITLE_LENGTH) };
 }
 
 /** Logs to the page's DevTools console in development builds only. */

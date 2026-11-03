@@ -2,7 +2,12 @@
 
 > See an interaction you love. Capture it. Recreate it with AI.
 
-A Chrome (Manifest V3) extension that captures a web interaction from a live page and turns the evidence (DOM, CSS, animation, event, and geometry data) into an implementation recipe that an AI coding agent such as Claude Code, Codex, or Cursor can follow. It's a tool for understanding interactions. It is **not** a screenshot-to-code or video-to-prompt tool. Accuracy and usefulness for implementation matter more than impressive-sounding descriptions.
+A Chrome (Manifest V3) extension that turns what the user sees on a live page into a prompt for an AI coding agent such as Claude Code, Codex, or Cursor. It has two separate workflows (product decision, 2026-11-02):
+
+- **Select Design:** the user picks an Element, a Section, or the Full page. The extension reads design evidence from the page (structure, computed styles, a screenshot) and builds a prompt to create something **similar**, not a verbatim copy of someone else's site or brand assets.
+- **Record Motion:** the user records a real video of the tab, 5 seconds at most. An AI analyzes the video (or timestamped frames) through a backend that holds the API key, and writes a prompt to recreate the motion.
+
+The first screen offers only these two choices, and each reveals only the controls it needs. Both end on the same prompt screen (Copy, Regenerate, React or HTML/CSS). Accuracy and honesty matter more than impressive-sounding descriptions: facts read from the page are always kept apart from interpretation.
 
 ## Status
 
@@ -23,7 +28,15 @@ A Chrome (Manifest V3) extension that captures a web interaction from a live pag
     - recipe tests on all 15 real captures
     - panel screenshots of real components with real data (`npm run preview:panel`), reviewed in light and dark mode
   - Not yet done: a person pasting a recipe into Claude Code. That's M5.2.
-- **M5.2 (recipe vs. baseline comparison) is in progress.** The user approved the plan.
+- **Product redirect (2026-11-02).** The user redefined the product as the two workflows above. Review outcome, agreed with the user:
+  - Kept: the toolbar and `activeTab` access model, page support, injection and cleanup, the top-layer highlight, the picker, and the panel building blocks.
+  - **The old element-recording flow (M3–M5: recorder, analysis, recipe, timeline, JSON export) is dormant.** It's out of the UI and out of the built extension, but its code stays, with its unit and golden tests. It may give Record Motion exact facts that a video can't (for example a CSS transition's duration and easing). If Record Motion doesn't use it, delete it then.
+  - The Connect step is gone: choosing Select Design is the explicit action that injects the inspector.
+- **M6.1 (home screen and Select Design selection) is built, not yet tested by a person.**
+  - Verified by tests: unit tests (`src/core/sections.test.ts` covers 18 page patterns plus Element mode and the Full page outline; `panel-view.test.ts`), and `npm run sections:check`, which runs the real code in headless Chrome on `fixtures/sections.html` at 1280, 1000, and 390 px wide. All pass. The slowest highlight update measured 2.3 ms.
+  - Screens reviewed as screenshots (`npm run preview:panel`), light and dark.
+  - **Waiting for:** the user's manual test in Chrome with the production build, on `fixtures/sections.html` and 2–3 real sites.
+- **M5.2 (recipe vs. baseline comparison) is on hold**, because it compared the old recipe. The lab can test the new prompts later.
   - **The lab** is `D:\ai-interaction-lab`, its own Git repo. It's deliberately outside this repo, so Claude Code doesn't load this `CLAUDE.md` during the test.
     - React + GSAP, with three experiment slots, each with A (recipe) and B (baseline)
     - an A/B switcher at http://localhost:5173
@@ -66,10 +79,10 @@ A Chrome (Manifest V3) extension that captures a web interaction from a live pag
 
 | Piece | Where it runs | Responsibility |
 |---|---|---|
-| **Side panel** | Extension page that lives as long as the panel is open | UI, session state machine, orchestration, analysis, recipe, storage |
-| **Inspector** | Unlisted script injected on demand into one tab (isolated world) | Highlight overlay, element picking, snapshots, recording raw evidence |
+| **Side panel** | Extension page that lives as long as the panel is open | UI, session state machine, orchestration, prompt generation, storage |
+| **Inspector** | Unlisted script injected on demand into one tab (isolated world) | Highlight overlay, picking elements and sections, reading what's selected |
 | **Service worker** | Background, short-lived | Minimal: turns a toolbar click into "open the panel". Holds no state. |
-| **core** | Imported by the pieces above | Pure TypeScript: evidence types, sanitizing, analysis, recipe generation |
+| **core** | Imported by the pieces above | Pure TypeScript: section rules, selection and evidence types, sanitizing, prompt generation |
 
 Rules:
 
@@ -82,9 +95,9 @@ Rules:
 - Chrome pages and the Web Store show "can't be inspected".
 
 So the per-site permission fallback isn't needed.
-- The inspector is a WXT **unlisted script** (`src/entrypoints/inspector.ts`, built to `/inspector.js`). It's injected with `scripting.executeScript` **only after the user clicks Connect**. Don't make it a WXT content script: `registration: 'runtime'` adds the script's `matches` to `host_permissions`. No content scripts are declared statically, and there is no `<all_urls>` host permission. Injection is idempotent: if a copy is already waiting for the panel, another injection does nothing.
-- The side panel and the inspector talk over **one `chrome.tabs.connect` port per session**. Message types are TypeScript discriminated unions in `src/messaging/protocol.ts`. **If the port disconnects (panel closed, Disconnect clicked, page reloaded or navigated, tab closed), the session ends and the inspector removes everything it added.**
-- **A capture session belongs to one tab** (product decision, M1.2). On any other tab, the panel offers "Return to [site]" or Disconnect. Which screen to show is decided by the pure function `getPanelView` in `src/panel/panel-view.ts`.
+- The inspector is a WXT **unlisted script** (`src/entrypoints/inspector.ts`, built to `/inspector.js`). It's injected with `scripting.executeScript` **only after the user chooses Select Design**. Don't make it a WXT content script: `registration: 'runtime'` adds the script's `matches` to `host_permissions`. No content scripts are declared statically, and there is no `<all_urls>` host permission. Injection is idempotent: if a copy is already waiting for the panel, another injection does nothing.
+- The side panel and the inspector talk over **one `chrome.tabs.connect` port per session**. Message types are TypeScript discriminated unions in `src/messaging/protocol.ts`. **If the port disconnects (panel closed, Back to the home screen, End session, page reloaded or navigated, tab closed), the session ends and the inspector removes everything it added.**
+- **A capture session belongs to one tab** (product decision, M1.2). On any other tab, the panel offers "Return to [site]" or End session. Which screen to show is decided by the pure function `getPanelView` in `src/panel/panel-view.ts`.
 - **Picker and highlight (M2.1).**
   - The highlight is an `<ai-interaction-overlay>` element. It's added to `<html>` only while the user is picking, and removed afterwards.
   - It's shown as a manual popover, in the browser's top layer. Its host styles are inline and `!important`, and its contents sit in a closed shadow root whose `.root` resets styles with `all: initial`. Everything in it has `pointer-events: none`, and it never styles or changes page elements.
@@ -95,6 +108,24 @@ So the per-site permission fallback isn't needed.
   - Hover, wheel, and scroll events reach the page, so its hover effects and scrolling keep working.
   - The highlight updates at most once per animation frame.
   - Picking stops on Esc (in the page or the panel), Cancel, the tab being hidden, or disconnect.
+  - **Keyboard focus usually stays in the side panel while the user picks**, because they clicked a panel button to start. So the panel listens for Esc, ↑, and ↓ (`useKeys`) and forwards them (`picker:cancel`, `picker:widen`, `picker:narrow`). The picker also handles them if the page has focus, and hides them from the page so it doesn't scroll.
+- **Select Design (M6.1).**
+  - **Screens:** home (Select Design, plus Record Motion marked "Coming soon") → Element / Section / Full page → picking → selected. Back goes one level up: from a selection to the three choices, and from there to home, which disconnects and cleans up the page.
+  - **Levels for ↑ and ↓** (`src/core/sections.ts`): the hovered element and its ancestors, grouped so that elements with the same visible box (clipped by ancestors that hide overflow) are one level. So every key press visibly changes the highlight. A level is named after its outermost sectioning element, otherwise its outermost element. Inline elements other than the starting one, and levels that are the whole page, aren't levels. The whole page is Full page's job.
+  - **Element mode** starts at the hovered element. Anything inside an `<svg>` starts at the outermost `<svg>`.
+  - **Section mode** starts at the hovered element's section. Walking down from just below `<body>` (or from the outermost fixed or top-layer element), the section is the first element that isn't a **page wrapper**. Wrappers are recognized by shape, because many sites use plain divs:
+    - several blocks stacked vertically, flush with the element: sections have padding, page wrappers don't
+    - on long pages, a page-scale element holding several big blocks, whatever their width
+    - page-tall columns side by side (docs sidebars, app shells)
+    - a wrapper around a wrapper (framework roots such as `#root` or `#__next`)
+    - a full-width bar floating over a page-sized block, or a screen-sized modal backdrop around a smaller panel
+
+    Sectioning tags and landmark roles are one section unless they hold at least two sectioning elements. When the pointer is on a wrapper itself (between sections), it snaps to the nearest section. The rules came from research with 14 real page patterns. Removing any rule breaks at least one of them. Four more patterns were added later (GSAP ScrollSmoother, Headless UI modals, pinned scroll-telling sections, bento pages).
+  - **Full page** (`pageOutline`) opens every page wrapper from `<body>` down and lists the rest in DOM order, which survives sticky headers that move while scrolling. Absolute children are left out unless they're a bar across the top, and small fixed buttons (such as chat bubbles) are left out too.
+  - **After selecting:** Wider (`widerThan`, the next level up) and Narrower (back down the Wider trail, otherwise the first in-flow child with a different box; never inside an `<svg>`). Each step flashes the highlight. The selection (`src/core/selection.ts`) holds only names, sizes, the ancestor path, and the page and viewport size, with no page text.
+  - The inspector reads the chain (`src/inspector/section-input.ts`) only when it updates the highlight: the hovered element, its ancestors, and their children's boxes (at most 100 children each).
+  - `npm run sections:check` (`scripts/sections/`) bundles the real code into `fixtures/sections.html` in headless Chrome, hovers known points at three widths, and checks the highlight, ↑ and ↓, and the outline. **Run it after changing the section rules, the picker, or the test page.** When a real site picks the wrong section, add its shape to `sections.test.ts` first.
+- **Dormant since M6.1: element details and the element-recording flow (M2.2–M5.1, below).** None of it is in the UI or the built extension. The golden harness and the unit tests still use it, so it keeps working.
 - **Element details (M2.2).**
   - The inspector reads a snapshot once per selection (`src/inspector/snapshot.ts`): name, path, size before and after transforms, page position, and the computed styles in `SNAPSHOT_PROPERTIES`. It only reads. Page values are capped in `createElementSnapshot`.
   - "Only non-default styles" (a product decision) means compared with **Chrome's built-in defaults for that kind of element**. The panel reads those from an unstyled copy of the same tag, created in a closed shadow root in the side panel (`src/panel/default-styles.ts`), never on the page.
@@ -198,8 +229,8 @@ So the per-site permission fallback isn't needed.
   - Every recipe has a "How sure this is" section, says what wasn't captured, and includes reduced-motion advice (plus keyboard advice for hover).
   - **The site's hostname is never included**; a test checks this.
 - **Panel results:** `RecordingResults` computes the capture, analysis, and recipe once, then renders `RecipeCard` (Copy recipe and Preview) above `AnalysisCard`. A stagger is shown as one "N × item" block.
-- **Panel preview** (`npm run preview:panel -- [captures]`, in `scripts/panel-preview/`):
-  - builds the real panel components with a real capture
+- **Panel preview** (`npm run preview:panel -- [screens]`, in `scripts/panel-preview/`):
+  - builds the real panel screens (home, design, picking, section, page) with sample data
   - serves them over HTTP, since module scripts don't load from `file://`
   - screenshots them at 380 px, in light and dark mode, into `.output/panel-preview/`
   - uses its own `preview.css`, which points Tailwind at `src/` because the preview is built from another folder
@@ -218,8 +249,8 @@ src/
     sidepanel/      index.html + main.tsx (mounts the React app)
     inspector.ts    unlisted script; injected on demand, never in the manifest
   panel/            side panel React UI: screens/, components/, hooks/, session/, panel-view.ts
-  inspector/        runs inside the web page (plain TS): overlay, picker, snapshot, recorder/
-  core/             pure logic + tests: evidence, capture, timeline, analysis/ (M4), recipe/ (M5)
+  inspector/        runs inside the web page (plain TS): overlay, picker, section input, targets, selection; dormant: snapshot, recorder
+  core/             pure logic + tests: sections, selection; dormant: evidence, capture, timeline, analysis/ (M4), recipe/ (M5)
   messaging/        typed message contracts shared by panel + inspector
   storage/          chrome.storage wrappers (settings, recent captures)
 fixtures/           local test pages with known values, each listing what the extension should report (`npm run fixtures`)
@@ -243,7 +274,8 @@ Known blind spots, which the UI and the recipes must communicate honestly:
 - Animations driven by JavaScript (GSAP, `requestAnimationFrame` loops, most spring animations) can only be Measured, not Observed.
 - Canvas and WebGL content.
 - Iframes. The inspector runs only in the top frame, so the picker can't select anything inside an iframe, and clicks inside an iframe still reach it while picking.
-- Elements with `pointer-events: none`, which are often decorative layers. They can't be hovered or picked yet, though ↓ Child can reach them.
+- Elements with `pointer-events: none`, which are often decorative layers. They can't be hovered or picked.
+- Section mode's choice is a heuristic. It will sometimes pick the wrong container, especially on sites built from nested divs. ↑ and ↓, and Wider and Narrower, are the reliable fix.
 - Recording: elements that start with `display: none` and appear later aren't tracked. Hidden tabs pause frame timing, so leaving the tab stops a recording. A transition that starts and ends between two frames (under about 16 ms) can be missed. JavaScript libraries' own settings (GSAP timelines, for example) are invisible: only their effects are recorded.
 - Closed shadow roots.
 - Restricted pages: `chrome://`, the Chrome Web Store, other extensions, and the PDF viewer. `file://` pages work only if the user opts in.
@@ -264,6 +296,7 @@ Known blind spots, which the UI and the recipes must communicate honestly:
 ## Inspector performance rules
 
 - Use passive listeners, and throttle pointer and scroll handling to animation frames.
+- Read the page once per action or per highlight update, never continuously. Section detection reads only the hovered element's ancestors and their children.
 - Sample only the selected element plus a capped number of descendants. Cap recordings at 10 seconds by default, and store only values that changed.
 - Don't write to the DOM during sampling, except for our own overlay.
 - Every listener, observer, timer, and `requestAnimationFrame` loop has a matching teardown.
@@ -284,8 +317,10 @@ Run these from the repo root:
 - `npm run compile` runs the TypeScript type check.
 - `npm test` runs the unit tests (Vitest).
 - `npm run fixtures` serves `fixtures/` at http://127.0.0.1:5174 (local only). Run it in a second terminal next to `npm run dev`.
+- `npm run sections:check` checks Select Design's choices on `fixtures/sections.html` in headless Chrome, at three widths. It exits with an error if any check fails.
 - `npm run golden:record` re-records `fixtures/captures/*.json` in headless Chrome (no window). Pass scenario names to record only some of them, e.g. `npm run golden:record -- toggle reveal`.
-- `npm run preview:panel -- list hover-card` screenshots the panel's results screen for those captures into `.output/panel-preview/`.
+- `npm run preview:panel -- home section` screenshots those panel screens with sample data into `.output/panel-preview/`. With no names, it shows all of them.
+- Run Vitest from PowerShell or from `D:/ai-interaction`. From Git Bash with the path written as `/d/ai-interaction`, every suite fails with "Cannot read properties of undefined (reading config)". That's a path problem, not broken code.
 - After adding or renaming an entrypoint, run `npx wxt prepare` to regenerate WXT's types, such as the list of valid script paths.
 - `npm run zip` creates the Chrome Web Store package.
 
@@ -301,11 +336,34 @@ Run these from the repo root:
 - [x] **M4.1** Analysis in `core`: trigger, motion segments, scroll links, stagger. Golden-tested on real Chrome recordings.
 - [x] **M4.2** Easing fit for measured (JavaScript-driven) motion. Golden-tested on 7 known easings.
 - [x] **M5.1** Deterministic recipe, copyable, for React + GSAP (plain CSS where enough). Tested on all real captures.
-- [ ] **M5.2** Compare our recipe with a plain "recording + prompt" baseline. Then decide whether an AI step adds value.
-- [ ] **M5.3** (Only if M5.2 justifies it) AI-enhanced recipe through a secure backend.
-- [ ] **M6** Test on real sites, then performance, accessibility, polish, and Web Store readiness.
+- [ ] **M5.2** (On hold since the redirect) Compare our recipe with a plain "recording + prompt" baseline.
+
+Select Design:
+
+- [ ] **M6.1** Home screen with the two workflows. Element, Section (with ↑/↓ and Wider/Narrower), and Full page selection. Built and tested automatically; waiting for the user's test in Chrome.
+- [ ] **M6.2** Design capture: a screenshot of the selection (`tabs.captureVisibleTab`, cropped, visible part only) and design facts (typography, colors, spacing, layout, backgrounds, borders, shadows, images, structure), shown in the panel.
+- [ ] **M6.3** Prompt generation adapted to the scope, and the shared prompt screen: Copy prompt, Copy screenshot, React or HTML/CSS, Regenerate.
+
+Record Motion:
+
+- [ ] **M7.1** 5-second tab video (`tabCapture`): countdown, stop early, auto-stop, preview with replay, Record again.
+- [ ] **M7.2** Timestamped frames, exact facts from the browser where available, and an honest "AI not set up" state.
+- [ ] **M7.3** AI analysis of the video into a prompt, through a backend that holds the key (approach to be decided).
+
+- [ ] **M8** Test on real sites, then performance, accessibility, polish, and Web Store readiness.
 
 ## Scope
 
 - **Not in V1:** authentication, payments, a marketplace, community features, full website cloning, deployment, broad framework support, complex cloud infrastructure, and promises of pixel-perfect recreation.
-- **Later, by decision only:** tab video capture (needs `tabCapture` plus an offscreen document), main-world library detection, and "Adapt to My Project".
+- **Later, by decision only:** main-world library detection, and "Adapt to My Project".
+- **Decisions still open:**
+  - M6.2: privacy for screenshots, which show whatever is visible
+  - M6.3: page text in the prompt (placeholders or short real labels)
+  - M7.1: the `tabCapture` permission, which Chrome describes as "Read and change all your data on all websites", requested at first use, versus `getDisplayMedia`'s share picker every time
+  - M7.3: how the AI service works
+
+  Early research for M7 (2026-11-02, not yet double-checked; confirm against current Chrome docs and in Chrome before building):
+  - Use `tabCapture.getMediaStreamId({ targetTabId })`, then `getUserMedia` with `chromeMediaSource: 'tab'`. After the toolbar click, this needs no picker.
+  - The ID can be requested from the side panel but not from content scripts. It's single-use and expires after about 10 seconds.
+  - Without `consumerTabId` (Chrome 116+), the side panel itself may be able to record, with no offscreen document. Test that first.
+  - Capture video only, so the tab's sound keeps playing for the user.

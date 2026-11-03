@@ -2,7 +2,12 @@
 
 > See an interaction you love. Capture it. Recreate it with AI.
 
-AI Interaction is a Chrome extension (Manifest V3) that captures web interactions and turns them into implementation recipes for AI coding agents. Project conventions, architecture, and the roadmap are in [CLAUDE.md](CLAUDE.md).
+AI Interaction is a Chrome extension (Manifest V3) that turns what you see on a website into a prompt for an AI coding agent. It has two workflows:
+
+- **Select Design:** pick an element, a section, or the whole page, and get a prompt to build something similar.
+- **Record Motion** (coming next): record up to 5 seconds of an animation, and get a prompt to recreate it.
+
+Project conventions, architecture, and the roadmap are in [CLAUDE.md](CLAUDE.md).
 
 ## Requirements
 
@@ -48,10 +53,11 @@ Notes:
 | `npm run compile` | Runs the TypeScript type check |
 | `npm test` | Runs the unit tests |
 | `npm run fixtures` | Serves the local test pages at http://127.0.0.1:5174 |
+| `npm run sections:check` | Checks Select Design's Element, Section, and Full page choices on a test page, in hidden Chrome |
 | `npm run golden:record` | Re-records the real test captures in hidden Chrome, for the analysis tests |
-| `npm run preview:panel` | Screenshots the panel's results screen with real captures, into `.output/panel-preview/` |
+| `npm run preview:panel` | Screenshots the panel's screens with sample data, into `.output/panel-preview/` |
+| `npm run zip` | Creates a zip ready for the Chrome Web Store |
 
 ## Test pages
 
 The `fixtures/` folder holds small local pages with known styles and interactions. Each page lists what the extension should report, so you can check its accuracy. To use them, run `npm run fixtures` in a second terminal and open http://127.0.0.1:5174.
-| `npm run zip` | Creates a zip ready for the Chrome Web Store |

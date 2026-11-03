@@ -22,6 +22,14 @@ export function parentOf(element: Element): Element | null {
   return parent instanceof ShadowRoot ? parent.host : null;
 }
 
+/** Whether `element` is `ancestor` or inside it, also through shadow roots. */
+export function isInside(element: Element, ancestor: Element): boolean {
+  for (let node: Element | null = element; node; node = parentOf(node)) {
+    if (node === ancestor) return true;
+  }
+  return false;
+}
+
 /** All ancestors, from the top of the page down to the parent. */
 export function ancestorsOf(element: Element): Element[] {
   const ancestors: Element[] = [];

@@ -1,40 +1,26 @@
 import { describe, expect, it } from 'vitest';
-import { createElementSnapshot, INITIAL_STYLE_VALUES } from '@/core/element-snapshot';
-import { createEmptyRecording } from '@/core/recording';
+import { createElementSelection, createPageSelection } from '@/core/selection';
 import type { Connection } from './session/useInspectorConnection';
 import { getPanelView } from './panel-view';
 
 const exampleTab = { id: 1, url: 'https://example.com/' };
 const otherTab = { id: 2, url: 'https://other.dev/' };
-const page = { title: 'Example' };
-const snapshot = createElementSnapshot({
-  tag: 'div',
+const section = createElementSelection({
+  scope: 'section',
+  tag: 'section',
   id: '',
-  classes: ['card'],
-  namespace: 'html',
-  rect: { left: 0, top: 0, width: 320, height: 480 },
+  classes: ['hero'],
+  rect: { left: 0, top: 0, width: 1280, height: 720 },
   scroll: { x: 0, y: 0 },
-  layoutSize: { width: 320, height: 480 },
-  path: [],
-  styles: INITIAL_STYLE_VALUES,
-  type: null,
-  open: false,
-  hovered: false,
-  canSelectParent: true,
-  canSelectChild: false,
+  path: [{ tag: 'body', id: '', classes: [] }],
+  canWiden: true,
+  canNarrow: true,
+  viewport: { width: 1280, height: 800 },
 });
+const page = createPageSelection({ page: { width: 1280, height: 4000 }, viewport: { width: 1280, height: 800 }, sections: [] });
 
 function connected(overrides: Partial<Extract<Connection, { status: 'connected' }>> = {}): Connection {
-  return {
-    status: 'connected',
-    tabId: 1,
-    hostname: 'example.com',
-    page,
-    picking: false,
-    selected: null,
-    recorder: { status: 'idle' },
-    ...overrides,
-  };
+  return { status: 'connected', tabId: 1, hostname: 'example.com', picking: null, selection: null, ...overrides };
 }
 
 describe('getPanelView', () => {
@@ -53,57 +39,46 @@ describe('getPanelView', () => {
     });
   });
 
-  it('offers to connect on a supported page', () => {
+  it('offers the two workflows on a supported page', () => {
     expect(getPanelView(exampleTab, { status: 'idle' })).toEqual({
-      kind: 'ready',
+      kind: 'home',
       tabId: 1,
       hostname: 'example.com',
       notice: null,
     });
   });
 
-  it('shows the connecting state on its own tab', () => {
+  it('shows the Select Design choices, waiting while it connects', () => {
     expect(getPanelView(exampleTab, { status: 'connecting', tabId: 1, hostname: 'example.com' })).toEqual({
-      kind: 'connecting',
+      kind: 'design',
       hostname: 'example.com',
+      connecting: true,
     });
+    expect(getPanelView(exampleTab, connected())).toEqual({ kind: 'design', hostname: 'example.com', connecting: false });
   });
 
-  it('shows the connected page on its own tab', () => {
-    expect(getPanelView(exampleTab, connected())).toEqual({ kind: 'connected', hostname: 'example.com', page });
-  });
-
-  it('shows picking while the user chooses an element', () => {
-    expect(getPanelView(exampleTab, connected({ picking: true }))).toEqual({ kind: 'picking', hostname: 'example.com' });
-  });
-
-  it('shows the selected element', () => {
-    expect(getPanelView(exampleTab, connected({ selected: snapshot }))).toEqual({
-      kind: 'selected',
-      hostname: 'example.com',
-      snapshot,
-      recording: null,
-    });
-  });
-
-  it('shows the recording screen while recording', () => {
-    expect(
-      getPanelView(exampleTab, connected({ selected: snapshot, recorder: { status: 'recording', startedAt: 5 } })),
-    ).toEqual({ kind: 'recording', hostname: 'example.com', startedAt: 5 });
-  });
-
-  it('shows the finished recording with the selected element', () => {
-    const recording = createEmptyRecording('user');
-    expect(
-      getPanelView(exampleTab, connected({ selected: snapshot, recorder: { status: 'done', recording } })),
-    ).toMatchObject({ kind: 'selected', recording });
-  });
-
-  it('shows picking again when choosing another element', () => {
-    expect(getPanelView(exampleTab, connected({ picking: true, selected: snapshot }))).toEqual({
+  it('shows picking, with its mode, while the user chooses on the page', () => {
+    expect(getPanelView(exampleTab, connected({ picking: 'section' }))).toEqual({
       kind: 'picking',
       hostname: 'example.com',
+      mode: 'section',
     });
+  });
+
+  it('shows picking again when choosing again', () => {
+    expect(getPanelView(exampleTab, connected({ picking: 'element', selection: section }))).toMatchObject({
+      kind: 'picking',
+      mode: 'element',
+    });
+  });
+
+  it('shows the selection: an element or section, or the full page', () => {
+    expect(getPanelView(exampleTab, connected({ selection: section }))).toEqual({
+      kind: 'selected',
+      hostname: 'example.com',
+      selection: section,
+    });
+    expect(getPanelView(exampleTab, connected({ selection: page }))).toMatchObject({ kind: 'selected', selection: page });
   });
 
   it('asks the user to return when the session belongs to another tab', () => {
@@ -112,8 +87,8 @@ describe('getPanelView', () => {
 
   it('shows a closed-session notice only on the tab whose session closed', () => {
     const closed = { status: 'closed', tabId: 1 } as const;
-    expect(getPanelView(exampleTab, closed)).toMatchObject({ kind: 'ready', notice: { kind: 'connection-closed' } });
-    expect(getPanelView(otherTab, closed)).toMatchObject({ kind: 'ready', notice: null });
+    expect(getPanelView(exampleTab, closed)).toMatchObject({ kind: 'home', notice: { kind: 'connection-closed' } });
+    expect(getPanelView(otherTab, closed)).toMatchObject({ kind: 'home', notice: null });
   });
 
   it('keeps a closed-session notice when the tab moved to a site without access', () => {
@@ -126,7 +101,7 @@ describe('getPanelView', () => {
   it('shows why connecting failed on that tab', () => {
     const failed = { status: 'failed', tabId: 1, message: 'No access', detail: 'Cannot access contents' } as const;
     expect(getPanelView(exampleTab, failed)).toMatchObject({
-      kind: 'ready',
+      kind: 'home',
       notice: { kind: 'connection-failed', message: 'No access', detail: 'Cannot access contents' },
     });
   });

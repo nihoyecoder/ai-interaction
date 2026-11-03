@@ -37,10 +37,15 @@ const STYLES = `
     color: rgb(209 213 219);
     font-variant-numeric: tabular-nums;
   }
+  .hint {
+    flex: none;
+    color: rgb(147 197 253);
+  }
 `;
 
 export interface HighlightOverlay {
-  show(rect: DOMRect, summary: ElementSummary): void;
+  /** `hint` is a short keyboard hint after the size, such as "↑↓". */
+  show(rect: DOMRect, summary: ElementSummary, hint?: string): void;
   hide(): void;
   destroy(): void;
 }
@@ -52,13 +57,14 @@ export function createHighlightOverlay(): HighlightOverlay {
   const label = layerElement('div', 'label');
   const name = layerElement('span', 'name');
   const size = layerElement('span', 'size');
-  label.append(name, size);
+  const keys = layerElement('span', 'hint');
+  label.append(name, size, keys);
   box.hidden = true;
   label.hidden = true;
   layer.root.append(box, label);
 
   return {
-    show(rect, summary) {
+    show(rect, summary, hint = '') {
       box.style.transform = `translate(${rect.left}px, ${rect.top}px)`;
       box.style.width = `${rect.width}px`;
       box.style.height = `${rect.height}px`;
@@ -66,6 +72,8 @@ export function createHighlightOverlay(): HighlightOverlay {
 
       name.textContent = formatElementName(summary);
       size.textContent = formatElementSize(summary);
+      keys.textContent = hint;
+      keys.hidden = hint === '';
       label.hidden = false;
       placeLabel(label, rect);
     },

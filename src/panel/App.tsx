@@ -1,6 +1,7 @@
+import { useMemo } from 'react';
 import { browser } from '#imports';
 import { StatusBadge } from './components/StatusBadge';
-import { useEscapeKey } from './hooks/useEscapeKey';
+import { useKeys } from './hooks/useKeys';
 import { getPanelView } from './panel-view';
 import { getBadge, ViewScreen } from './screens/ViewScreen';
 import { useActiveTab } from './session/useActiveTab';
@@ -15,17 +16,22 @@ export function App() {
     connect,
     startPicking,
     cancelPicking,
-    selectParent,
-    selectChild,
+    widenPicker,
+    narrowPicker,
+    selectWider,
+    selectNarrower,
+    selectPage,
     clearSelection,
-    startRecording,
-    stopRecording,
     disconnect,
   } = useInspectorConnection();
   const view = getPanelView(activeTab, connection);
   const badge = getBadge(view);
-  // After clicking "Select element", keyboard focus is still in the panel, so Esc must work here too.
-  useEscapeKey(view.kind === 'picking', cancelPicking);
+  // While the user picks on the page, keyboard focus usually stays in the panel, so its keys must work here too.
+  const pickerKeys = useMemo(
+    () => ({ Escape: cancelPicking, ArrowUp: widenPicker, ArrowDown: narrowPicker }),
+    [cancelPicking, widenPicker, narrowPicker],
+  );
+  useKeys(view.kind === 'picking', pickerKeys);
 
   return (
     <div className="flex min-h-screen flex-col bg-white text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100">
@@ -40,15 +46,14 @@ export function App() {
       <main aria-live="polite" className="flex-1 px-4 py-6">
         <ViewScreen
           view={view}
-          onConnect={connect}
-          onSelectElement={startPicking}
+          onSelectDesign={connect}
+          onPick={startPicking}
+          onSelectPage={selectPage}
           onCancelPicking={cancelPicking}
-          onSelectParent={selectParent}
-          onSelectChild={selectChild}
+          onWider={selectWider}
+          onNarrower={selectNarrower}
           onClearSelection={clearSelection}
-          onStartRecording={startRecording}
-          onStopRecording={stopRecording}
-          onDisconnect={disconnect}
+          onEndSession={disconnect}
           onGoToTab={goToTab}
         />
       </main>

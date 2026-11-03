@@ -1,7 +1,7 @@
-// Screenshots the side panel's results screen for real captures, in light and dark mode, at side panel width.
-// Usage: npm run preview:panel -- [capture names]   (default: list hover-card ease-spring)
+// Screenshots side panel screens with sample data, in light and dark mode, at side panel width.
+// Usage: npm run preview:panel -- [screen names]   (default: all of home design picking section page)
 // Screenshots go to .output/panel-preview/.
-import { mkdir, readFile } from 'node:fs/promises';
+import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
@@ -10,7 +10,8 @@ import { build, preview } from 'vite';
 
 const CHROME = process.env.CHROME_PATH ?? 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 const OUT = resolve('.output/panel-preview');
-const names = process.argv.slice(2).length > 0 ? process.argv.slice(2) : ['list', 'hover-card', 'ease-spring'];
+const SCREENS = ['home', 'design', 'picking', 'section', 'page'];
+const names = process.argv.slice(2).length > 0 ? process.argv.slice(2) : SCREENS;
 
 await build({
   configFile: false,
@@ -35,15 +36,14 @@ const url = 'http://127.0.0.1:5175/';
 const browser = await puppeteer.launch({ executablePath: CHROME, headless: true });
 try {
   for (const name of names) {
-    const capture = await readFile(resolve('fixtures/captures', `${name}.json`), 'utf8');
     for (const scheme of ['light', 'dark']) {
       const page = await browser.newPage();
       page.on('pageerror', (error) => console.error(`[${name}] page error:`, error.message));
-      await page.setViewport({ width: 380, height: 900, deviceScaleFactor: 1 });
+      await page.setViewport({ width: 380, height: 760, deviceScaleFactor: 1 });
       await page.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: scheme }]);
-      await page.evaluateOnNewDocument(`window.__capture = ${capture};`);
+      await page.evaluateOnNewDocument(`window.__screen = ${JSON.stringify(name)};`);
       await page.goto(url, { waitUntil: 'load' });
-      await page.waitForSelector('article', { timeout: 10000 });
+      await page.waitForSelector('main section', { timeout: 10000 });
       const file = resolve(OUT, `${name}-${scheme}.png`);
       await page.screenshot({ path: file, fullPage: true });
       console.log(file);

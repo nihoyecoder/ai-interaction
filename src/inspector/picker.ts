@@ -1,23 +1,38 @@
+import type { PickMode } from '@/core/selection';
 import { elementAt, summarizeElement } from './dom';
 import { createHighlightOverlay } from './overlay';
+import { targetAt, type Target } from './targets';
 
-export interface PickerCallbacks {
+export interface PickerOptions {
+  /** Element highlights what's under the pointer. Section highlights the page section it belongs to. */
+  mode: PickMode;
   onSelect(element: Element): void;
   /** Picking stopped without a selection: Esc on the page, or the tab was hidden. */
   onCancel(): void;
 }
 
+export interface Picker {
+  /** ↑: highlight the next bigger container. */
+  widen(): void;
+  /** ↓: go back down toward what's under the pointer. */
+  narrow(): void;
+  /** Stops picking and removes everything the picker added. */
+  stop(): void;
+}
+
 /**
- * Lets the user pick an element: hovering highlights it, clicking selects it.
- * Hover and scrolling still reach the page, so its hover effects keep working.
- * Presses and clicks don't, so links don't navigate and buttons don't fire.
- * Returns a function that stops picking and removes everything the picker added.
+ * Lets the user pick an element or a section: hovering highlights it, ↑ and
+ * ↓ widen and narrow the highlight, clicking selects it. Hover and scrolling
+ * still reach the page, so its hover effects keep working. Presses and clicks
+ * don't, so links don't navigate and buttons don't fire.
  */
-export function startPicker({ onSelect, onCancel }: PickerCallbacks): () => void {
+export function startPicker({ mode, onSelect, onCancel }: PickerOptions): Picker {
   const overlay = createHighlightOverlay();
   const listeners = new AbortController();
   let pointer: { x: number; y: number } | null = null;
-  let drawn: { element: Element; rect: DOMRect } | null = null;
+  let target: Target | null = null;
+  // Set by ↑ and ↓. The chosen level stays while the pointer is inside it.
+  let adjusted = false;
   let frame = 0;
   let stopped = false;
 
@@ -28,16 +43,33 @@ export function startPicker({ onSelect, onCancel }: PickerCallbacks): () => void
 
   function update() {
     frame = 0;
-    const element = pointer ? elementAt(pointer.x, pointer.y) : null;
-    if (!element) {
-      drawn = null;
+    const hovered = pointer ? elementAt(pointer.x, pointer.y) : null;
+    const next = hovered && pointer ? targetAt(hovered, pointer.x, pointer.y, mode) : null;
+    const chosen = adjusted ? target?.levels[target.index]?.element : undefined;
+    const kept = chosen && next ? next.levels.findIndex((level) => level.element === chosen) : -1;
+    if (next && kept >= 0) next.index = kept;
+    else adjusted = false;
+    target = next;
+    draw();
+  }
+
+  function draw() {
+    const level = target?.levels[target.index];
+    if (!target || !level) {
       overlay.hide();
       return;
     }
-    const rect = element.getBoundingClientRect();
-    if (drawn?.element === element && sameRect(drawn.rect, rect)) return;
-    drawn = { element, rect };
-    overlay.show(rect, summarizeElement(element, rect));
+    const hint = `${target.index < target.levels.length - 1 ? '↑' : ''}${target.index > 0 ? '↓' : ''}`;
+    overlay.show(level.rect, summarizeElement(level.element, level.rect), hint);
+  }
+
+  function step(by: 1 | -1) {
+    if (!target) return;
+    const index = target.index + by;
+    if (index < 0 || index >= target.levels.length) return;
+    target.index = index;
+    adjusted = true;
+    draw();
   }
 
   function stop() {
@@ -73,16 +105,27 @@ export function startPicker({ onSelect, onCancel }: PickerCallbacks): () => void
     swallow(event);
     // Only a real left click selects. Keyboard-triggered clicks have detail 0.
     if (event.button !== 0 || event.detail === 0) return;
-    const element = elementAt(event.clientX, event.clientY);
+    // The click can arrive before the last pointer move was drawn.
+    pointer = { x: event.clientX, y: event.clientY };
+    cancelAnimationFrame(frame);
+    update();
+    const element = target?.levels[target.index]?.element;
     if (!element) return;
     stop();
     onSelect(element);
   };
+  // Keys reach the page only after the user clicks into it. Usually the side panel has focus, and it
+  // sends ↑ and ↓ through `widen` and `narrow` instead.
   const onKeyDown = (event: KeyboardEvent) => {
-    if (event.key !== 'Escape') return;
-    swallow(event);
-    stop();
-    onCancel();
+    if (event.altKey || event.ctrlKey || event.metaKey) return;
+    if (event.key === 'Escape') {
+      swallow(event);
+      stop();
+      onCancel();
+    } else if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+      swallow(event);
+      step(event.key === 'ArrowUp' ? 1 : -1);
+    }
   };
   const onVisibilityChange = () => {
     if (!document.hidden) return;
@@ -107,9 +150,5 @@ export function startPicker({ onSelect, onCancel }: PickerCallbacks): () => void
   window.addEventListener('keydown', onKeyDown, active);
   document.addEventListener('visibilitychange', onVisibilityChange, { signal: listeners.signal });
 
-  return stop;
-}
-
-function sameRect(a: DOMRect, b: DOMRect): boolean {
-  return a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
+  return { widen: () => step(1), narrow: () => step(-1), stop };
 }

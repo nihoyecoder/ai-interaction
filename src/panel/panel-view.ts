@@ -1,7 +1,5 @@
-import type { ElementSnapshot } from '@/core/element-snapshot';
-import type { Recording } from '@/core/recording';
 import { getPageSupport, type RestrictedReason } from '@/core/page-support';
-import type { PageInfo } from '@/messaging/protocol';
+import type { DesignSelection, PickMode } from '@/core/selection';
 import type { ActiveTab } from './session/useActiveTab';
 import type { Connection } from './session/useInspectorConnection';
 
@@ -14,17 +12,17 @@ export type PanelView =
   | { kind: 'loading' }
   | { kind: 'no-access'; notice: Notice | null }
   | { kind: 'restricted'; reason: RestrictedReason }
-  | { kind: 'ready'; tabId: number; hostname: string; notice: Notice | null }
-  | { kind: 'connecting'; hostname: string }
-  | { kind: 'connected'; hostname: string; page: PageInfo }
-  | { kind: 'picking'; hostname: string }
-  | { kind: 'recording'; hostname: string; startedAt: number }
-  | { kind: 'selected'; hostname: string; snapshot: ElementSnapshot; recording: Recording | null }
+  /** The two workflows to choose from. Nothing runs on the page yet. */
+  | { kind: 'home'; tabId: number; hostname: string; notice: Notice | null }
+  /** Select Design: Element, Section, or Full page. The choices wait while the panel connects. */
+  | { kind: 'design'; hostname: string; connecting: boolean }
+  | { kind: 'picking'; hostname: string; mode: PickMode }
+  | { kind: 'selected'; hostname: string; selection: DesignSelection }
   | { kind: 'away'; tabId: number; hostname: string };
 
 /**
  * Decides what the panel shows. A session belongs to the tab where it started:
- * on any other tab, the panel asks the user to return or disconnect.
+ * on any other tab, the panel asks the user to return or end it.
  */
 export function getPanelView(activeTab: ActiveTab | null, connection: Connection): PanelView {
   if (connection.status === 'connecting' || connection.status === 'connected') {
@@ -32,15 +30,10 @@ export function getPanelView(activeTab: ActiveTab | null, connection: Connection
       return { kind: 'away', tabId: connection.tabId, hostname: connection.hostname };
     }
     const { hostname } = connection;
-    if (connection.status === 'connecting') return { kind: 'connecting', hostname };
-    const { recorder } = connection;
-    if (recorder.status === 'recording') return { kind: 'recording', hostname, startedAt: recorder.startedAt };
-    if (connection.picking) return { kind: 'picking', hostname };
-    if (connection.selected) {
-      const recording = recorder.status === 'done' ? recorder.recording : null;
-      return { kind: 'selected', hostname, snapshot: connection.selected, recording };
-    }
-    return { kind: 'connected', hostname, page: connection.page };
+    if (connection.status === 'connecting') return { kind: 'design', hostname, connecting: true };
+    if (connection.picking) return { kind: 'picking', hostname, mode: connection.picking };
+    if (connection.selection) return { kind: 'selected', hostname, selection: connection.selection };
+    return { kind: 'design', hostname, connecting: false };
   }
 
   if (!activeTab) return { kind: 'loading' };
@@ -53,7 +46,7 @@ export function getPanelView(activeTab: ActiveTab | null, connection: Connection
     case 'restricted':
       return { kind: 'restricted', reason: support.reason };
     case 'supported':
-      return { kind: 'ready', tabId: activeTab.id, hostname: support.hostname, notice };
+      return { kind: 'home', tabId: activeTab.id, hostname: support.hostname, notice };
   }
 }
 

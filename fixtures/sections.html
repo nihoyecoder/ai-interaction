@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Test page: sections</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font: 16px/1.5 system-ui, sans-serif;
+        color: #111827;
+        background: #fff;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+      a {
+        color: inherit;
+      }
+      .container {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+      .button {
+        display: inline-flex;
+        align-items: center;
+        height: 40px;
+        padding: 0 18px;
+        border-radius: 999px;
+        background: #4f46e5;
+        color: #fff;
+        font-size: 15px;
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .button.secondary {
+        background: transparent;
+        color: #4f46e5;
+        box-shadow: inset 0 0 0 1px #c7d2fe;
+      }
+
+      /* A bar above the app, outside its React-style root. */
+      .announcement {
+        padding: 10px 16px;
+        background: #111827;
+        color: #f9fafb;
+        font-size: 14px;
+        text-align: center;
+      }
+
+      .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        border-bottom: 1px solid #e5e7eb;
+        background: rgb(255 255 255 / 0.92);
+      }
+      .site-header .container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        height: 64px;
+      }
+      .logo {
+        font-weight: 700;
+        text-decoration: none;
+      }
+      .site-header ul {
+        display: flex;
+        gap: 20px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .site-header nav a {
+        color: #374151;
+        font-size: 15px;
+        text-decoration: none;
+      }
+
+      /* Full-bleed band with a centered column, and a glow that ignores the pointer. */
+      .hero {
+        position: relative;
+        overflow: hidden;
+        padding: 96px 0;
+        background: linear-gradient(160deg, #eef2ff, #fdf2f8);
+      }
+      .glow {
+        position: absolute;
+        inset: -20% 40% 30% -10%;
+        background: radial-gradient(circle, rgb(99 102 241 / 0.25), transparent 60%);
+        pointer-events: none;
+      }
+      .hero-grid {
+        position: relative;
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 48px;
+        align-items: center;
+      }
+      .hero h1 {
+        margin: 16px 0;
+        font-size: 52px;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+      }
+      .hero-copy p {
+        max-width: 520px;
+        color: #4b5563;
+        font-size: 18px;
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 28px;
+      }
+      .art-card {
+        display: grid;
+        place-items: center;
+        aspect-ratio: 4 / 3;
+        border-radius: 24px;
+        background: linear-gradient(135deg, #6366f1, #ec4899);
+        box-shadow: 0 30px 60px -20px rgb(79 70 229 / 0.45);
+      }
+      .art-card svg {
+        width: 96px;
+        height: 96px;
+        color: #fff;
+      }
+      demo-badge {
+        display: inline-block;
+      }
+
+      .logos {
+        padding: 32px 0;
+        border-bottom: 1px solid #f3f4f6;
+      }
+      .logo-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .logo-row li {
+        width: 120px;
+        height: 40px;
+        border-radius: 8px;
+        background: #e5e7eb;
+      }
+
+      .features,
+      .faq {
+        padding: 96px 0;
+      }
+      .section-heading {
+        max-width: 640px;
+        margin: 0 auto 48px;
+        text-align: center;
+      }
+      .section-heading h2 {
+        margin-bottom: 12px;
+        font-size: 36px;
+        letter-spacing: -0.01em;
+      }
+      .section-heading p {
+        color: #6b7280;
+      }
+      .feature-grid,
+      .pricing-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+      }
+      /* A link around a card, with exactly the same box. */
+      .feature-link {
+        display: block;
+        text-decoration: none;
+      }
+      .feature-card {
+        padding: 24px;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        background: #fff;
+      }
+      .feature-card h3 {
+        margin-bottom: 8px;
+        font-size: 18px;
+      }
+      .feature-card p {
+        color: #6b7280;
+        font-size: 15px;
+      }
+
+      /* A section made of plain divs, 24 px below the one before it. */
+      .block-pricing {
+        margin-top: 24px;
+        padding: 96px 0;
+        background: #f9fafb;
+      }
+      .plan {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding: 32px;
+        border: 1px solid #e5e7eb;
+        border-radius: 20px;
+        background: #fff;
+      }
+      .plan.featured {
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 1px #4f46e5;
+      }
+      .price {
+        font-size: 40px;
+        font-weight: 700;
+      }
+      .plan ul {
+        margin: 0;
+        padding-left: 18px;
+        color: #4b5563;
+      }
+
+      .faq details {
+        padding: 16px 0;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      .faq summary {
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .map {
+        display: block;
+        width: 100%;
+        height: 160px;
+        margin-top: 32px;
+        border: 0;
+        border-radius: 12px;
+        background: #f3f4f6;
+      }
+
+      .cta {
+        padding: 80px 0;
+        background: #111827;
+        color: #fff;
+        text-align: center;
+      }
+      .cta h2 {
+        margin-bottom: 24px;
+        font-size: 36px;
+      }
+
+      .site-footer {
+        padding: 64px 0 32px;
+        background: #0b1020;
+        color: #9ca3af;
+      }
+      .footer-columns {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+        margin-bottom: 48px;
+      }
+      .footer-columns h3 {
+        margin-bottom: 12px;
+        color: #fff;
+        font-size: 14px;
+      }
+      .footer-columns ul {
+        display: grid;
+        gap: 8px;
+        margin: 0;
+        padding: 0;
+        font-size: 14px;
+        list-style: none;
+      }
+      .footer-columns a {
+        text-decoration: none;
+      }
+      .legal {
+        font-size: 13px;
+      }
+
+      @media (max-width: 760px) {
+        .site-header nav {
+          display: none;
+        }
+        .hero-grid,
+        .feature-grid,
+        .pricing-grid {
+          grid-template-columns: 1fr;
+        }
+        .hero h1 {
+          font-size: 36px;
+        }
+        .footer-columns {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .logo-row li:nth-child(n + 4) {
+          display: none;
+        }
+      }
+
+      /* The checklist below the page, for testing by hand. */
+      .test-notes {
+        padding: 48px 24px;
+        background: #fffbeb;
+        font: 14px/1.6 system-ui, sans-serif;
+      }
+      .test-notes > * {
+        max-width: 760px;
+        margin-right: auto;
+        margin-left: auto;
+      }
+      .test-notes h2 {
+        margin-bottom: 8px;
+        font-size: 18px;
+      }
+      .test-notes ol {
+        padding-left: 20px;
+      }
+      .test-notes code {
+        font: 13px ui-monospace, monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="announcement">New: test pages for Select Design. <a href="#notes">See the checklist below.</a></div>
+
+    <div id="root">
+      <div class="app">
+        <header class="site-header">
+          <div class="container">
+            <a class="logo" href="#">Northwind</a>
+            <nav aria-label="Main">
+              <ul>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+                <li><a href="#faq">FAQ</a></li>
+                <li><a href="#notes">Docs</a></li>
+              </ul>
+            </nav>
+            <a class="button" href="#pricing">Get started</a>
+          </div>
+        </header>
+
+        <main>
+          <section class="hero">
+            <div class="glow"></div>
+            <div class="container">
+              <div class="hero-grid">
+                <div class="hero-copy">
+                  <demo-badge>New in 2.0</demo-badge>
+                  <h1>Plan, build, and ship in one calm place</h1>
+                  <p>A placeholder product for testing. Every block on this page has a known structure.</p>
+                  <div class="actions">
+                    <a class="button" href="#pricing">Start for free</a>
+                    <a class="button secondary" href="#features">See features</a>
+                  </div>
+                </div>
+                <div class="hero-art">
+                  <div class="art-card">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                      <path d="M4 17l6-6 4 4 6-8" />
+                      <circle cx="20" cy="7" r="1.5" fill="currentColor" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="logos" aria-label="Customers">
+            <div class="container">
+              <ul class="logo-row">
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+              </ul>
+            </div>
+          </section>
+
+          <section class="features" id="features">
+            <div class="container">
+              <div class="section-heading">
+                <h2>Everything in one place</h2>
+                <p>Six cards in a grid, each a link around a card with the same box.</p>
+              </div>
+              <div class="feature-grid">
+                <a class="feature-link" href="#features"><article class="feature-card"><h3>Boards</h3><p>Move work through simple stages.</p></article></a>
+                <a class="feature-link" href="#features"><article class="feature-card"><h3>Docs</h3><p>Write next to the work it describes.</p></article></a>
+                <a class="feature-link" href="#features"><article class="feature-card"><h3>Goals</h3><p>Track what matters this quarter.</p></article></a>
+                <a class="feature-link" href="#features"><article class="feature-card"><h3>Automations</h3><p>Let routine steps run themselves.</p></article></a>
+                <a class="feature-link" href="#features"><article class="feature-card"><h3>Reports</h3><p>See progress at a glance.</p></article></a>
+                <a class="feature-link" href="#features"><article class="feature-card"><h3>Integrations</h3><p>Connect the tools you already use.</p></article></a>
+              </div>
+            </div>
+          </section>
+
+          <div class="block-pricing" id="pricing">
+            <div class="container">
+              <div class="section-heading">
+                <h2>Simple pricing</h2>
+                <p>A section built from plain divs, without a section tag.</p>
+              </div>
+              <div class="pricing-grid">
+                <div class="plan">
+                  <h3>Starter</h3>
+                  <p class="price">$0</p>
+                  <ul><li>3 projects</li><li>Basic boards</li><li>Community help</li></ul>
+                  <a class="button secondary" href="#pricing">Choose Starter</a>
+                </div>
+                <div class="plan featured">
+                  <h3>Team</h3>
+                  <p class="price">$12</p>
+                  <ul><li>Unlimited projects</li><li>Automations</li><li>Email help</li></ul>
+                  <a class="button" href="#pricing">Choose Team</a>
+                </div>
+                <div class="plan">
+                  <h3>Enterprise</h3>
+                  <p class="price">Talk to us</p>
+                  <ul><li>SSO</li><li>Audit log</li><li>A named contact</li></ul>
+                  <a class="button secondary" href="#pricing">Contact sales</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <section class="faq" id="faq">
+            <div class="container">
+              <div class="section-heading">
+                <h2>Questions</h2>
+                <p>Four questions and an embedded frame.</p>
+              </div>
+              <details><summary>Is there a free plan?</summary><p>Yes. Starter is free.</p></details>
+              <details><summary>Can I change plans later?</summary><p>Any time.</p></details>
+              <details><summary>Do you offer discounts?</summary><p>For schools and nonprofits.</p></details>
+              <details><summary>Where is my data stored?</summary><p>Nowhere: this is a test page.</p></details>
+              <iframe
+                class="map"
+                title="Embedded map"
+                srcdoc="<p style='margin:16px;font:14px system-ui;color:#6b7280'>An embedded map would load here.</p>"
+              ></iframe>
+            </div>
+          </section>
+
+          <section class="cta">
+            <div class="container">
+              <h2>Ready to start?</h2>
+              <a class="button" href="#pricing">Create a free account</a>
+            </div>
+          </section>
+        </main>
+
+        <footer class="site-footer">
+          <div class="container">
+            <div class="footer-columns">
+              <div><h3>Product</h3><ul><li><a href="#features">Features</a></li><li><a href="#pricing">Pricing</a></li></ul></div>
+              <div><h3>Company</h3><ul><li><a href="#notes">About</a></li><li><a href="#notes">Careers</a></li></ul></div>
+              <div><h3>Resources</h3><ul><li><a href="#notes">Docs</a></li><li><a href="#faq">Help</a></li></ul></div>
+              <div><h3>Legal</h3><ul><li><a href="#notes">Privacy</a></li><li><a href="#notes">Terms</a></li></ul></div>
+            </div>
+            <p class="legal">Northwind is a made-up product on a local test page.</p>
+          </div>
+        </footer>
+      </div>
+    </div>
+
+    <aside class="test-notes" id="notes">
+      <h2>What the extension should report</h2>
+      <p>Open the side panel, choose <strong>Select Design</strong>, then a mode.</p>
+      <h3>Section</h3>
+      <ol>
+        <li>The big headline: <code>section.hero</code>, the whole gradient band. ↑ gives <code>main</code>. ↓ from the hero gives <code>div.container</code>, the centered column.</li>
+        <li>A link in the header: <code>header.site-header</code>.</li>
+        <li>A grey logo box: <code>section.logos</code>.</li>
+        <li>A feature card: <code>section.features</code>.</li>
+        <li>A pricing plan: <code>div.block-pricing</code>, a section made of plain divs.</li>
+        <li>The white strip just above the grey pricing band: the nearest section, <code>section.features</code> or <code>div.block-pricing</code>.</li>
+        <li>A question, or the embedded frame: <code>section.faq</code>.</li>
+        <li>The dark "Ready to start?" band: <code>section.cta</code>.</li>
+        <li>A footer link: <code>footer.site-footer</code>.</li>
+        <li>The dark bar at the very top: <code>div.announcement</code>.</li>
+      </ol>
+      <h3>Element</h3>
+      <ol>
+        <li>The headline: <code>h1</code>. ↑ gives <code>div.hero-copy</code>.</li>
+        <li>The text of the "New in 2.0" badge: <code>demo-badge</code>, a web component. Its small blue dot is inside the component's shadow root: <code>span.dot</code>, and ↑ gives <code>span.pill</code>.</li>
+        <li>A feature card's description: <code>p</code>. ↑ gives <code>article.feature-card</code>: the link around it has the same box, so they're one step.</li>
+        <li>The embedded frame: <code>iframe.map</code>. Nothing inside it can be picked.</li>
+      </ol>
+      <h3>Full page</h3>
+      <p>
+        Ten sections, in this order: <code>div.announcement</code>, <code>header.site-header</code> (sticky),
+        <code>section.hero</code>, <code>section.logos</code>, <code>section.features</code>,
+        <code>div.block-pricing</code>, <code>section.faq</code>, <code>section.cta</code>,
+        <code>footer.site-footer</code>, and this checklist, <code>aside.test-notes</code>.
+      </p>
+    </aside>
+
+    <script>
+      // A web component with an open shadow root: Element mode can see inside it.
+      customElements.define(
+        'demo-badge',
+        class extends HTMLElement {
+          constructor() {
+            super();
+            this.attachShadow({ mode: 'open' }).innerHTML = `
+              <style>
+                .pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px;
+                  background: #e0e7ff; color: #3730a3; font: 600 12px/1.4 system-ui, sans-serif; }
+                .dot { width: 6px; height: 6px; border-radius: 50%; background: #4f46e5; }
+              </style>
+              <span class="pill"><span class="dot"></span><slot></slot></span>`;
+          }
+        },
+      );
+    </script>
+  </body>
+</html>

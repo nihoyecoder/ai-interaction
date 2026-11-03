@@ -1,32 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { browser, type Browser } from '#imports';
-import type { ElementSnapshot } from '@/core/element-snapshot';
-import type { Recording } from '@/core/recording';
-import {
-  INSPECTOR_PORT_NAME,
-  type InspectorToPanel,
-  type PageInfo,
-  type PanelToInspector,
-} from '@/messaging/protocol';
+import type { DesignSelection, PickMode } from '@/core/selection';
+import { INSPECTOR_PORT_NAME, type InspectorToPanel, type PanelToInspector } from '@/messaging/protocol';
 import { describeConnectionError } from './connection-errors';
 
 type Connected = {
   status: 'connected';
   tabId: number;
   hostname: string;
-  page: PageInfo;
-  /** The user is choosing an element on the page. */
-  picking: boolean;
-  selected: ElementSnapshot | null;
-  /** Recording of the selected element. Reset whenever the selection changes. */
-  recorder: RecorderState;
+  /** The user is choosing an element or a section on the page. */
+  picking: PickMode | null;
+  selection: DesignSelection | null;
 };
-
-export type RecorderState =
-  | { status: 'idle' }
-  /** `startedAt` is the panel's clock, used only to show elapsed time. */
-  | { status: 'recording'; startedAt: number }
-  | { status: 'done'; recording: Recording };
 
 export type Connection =
   | { status: 'idle' }
@@ -67,34 +52,14 @@ export function useInspectorConnection() {
     port.onMessage.addListener((message: InspectorToPanel) => {
       if (portRef.current !== port) return;
       switch (message.type) {
-        case 'page-info':
-          setConnection({
-            status: 'connected',
-            tabId,
-            hostname,
-            page: message.page,
-            picking: false,
-            selected: null,
-            recorder: { status: 'idle' },
-          });
+        case 'ready':
+          setConnection({ status: 'connected', tabId, hostname, picking: null, selection: null });
           break;
         case 'selection:changed':
-          setConnection(
-            whileConnected((current) => ({
-              ...current,
-              picking: false,
-              selected: message.snapshot,
-              recorder: { status: 'idle' },
-            })),
-          );
-          break;
-        case 'recording:finished':
-          setConnection(
-            whileConnected((current) => ({ ...current, recorder: { status: 'done', recording: message.recording } })),
-          );
+          setConnection(whileConnected((current) => ({ ...current, picking: null, selection: message.selection })));
           break;
         case 'picker:cancelled':
-          setConnection(whileConnected((current) => ({ ...current, picking: false })));
+          setConnection(whileConnected((current) => ({ ...current, picking: null })));
           break;
       }
     });
@@ -109,44 +74,46 @@ export function useInspectorConnection() {
       );
     });
 
-    send(port, { type: 'page-info:request' });
+    send(port, { type: 'hello' });
   }, []);
 
-  const startPicking = useCallback(() => {
+  const startPicking = useCallback((mode: PickMode) => {
     if (!portRef.current) return;
-    send(portRef.current, { type: 'picker:start' });
-    setConnection(whileConnected((current) => ({ ...current, picking: true })));
+    send(portRef.current, { type: 'picker:start', mode });
+    setConnection(whileConnected((current) => ({ ...current, picking: mode })));
   }, []);
 
   const cancelPicking = useCallback(() => {
     if (!portRef.current) return;
     send(portRef.current, { type: 'picker:cancel' });
-    setConnection(whileConnected((current) => ({ ...current, picking: false })));
+    setConnection(whileConnected((current) => ({ ...current, picking: null })));
   }, []);
 
-  const selectParent = useCallback(() => {
-    if (portRef.current) send(portRef.current, { type: 'selection:parent' });
+  // While picking, the inspector answers the next selection with `selection:changed`.
+  const widenPicker = useCallback(() => {
+    if (portRef.current) send(portRef.current, { type: 'picker:widen' });
   }, []);
 
-  const selectChild = useCallback(() => {
-    if (portRef.current) send(portRef.current, { type: 'selection:child' });
+  const narrowPicker = useCallback(() => {
+    if (portRef.current) send(portRef.current, { type: 'picker:narrow' });
+  }, []);
+
+  const selectWider = useCallback(() => {
+    if (portRef.current) send(portRef.current, { type: 'selection:wider' });
+  }, []);
+
+  const selectNarrower = useCallback(() => {
+    if (portRef.current) send(portRef.current, { type: 'selection:narrower' });
+  }, []);
+
+  const selectPage = useCallback(() => {
+    if (portRef.current) send(portRef.current, { type: 'selection:page' });
   }, []);
 
   const clearSelection = useCallback(() => {
     if (!portRef.current) return;
     send(portRef.current, { type: 'selection:clear' });
-    setConnection(whileConnected((current) => ({ ...current, selected: null, recorder: { status: 'idle' } })));
-  }, []);
-
-  const startRecording = useCallback(() => {
-    if (!portRef.current) return;
-    send(portRef.current, { type: 'recording:start' });
-    setConnection(whileConnected((current) => ({ ...current, recorder: { status: 'recording', startedAt: Date.now() } })));
-  }, []);
-
-  // The recorder replies with `recording:finished`, which updates the state.
-  const stopRecording = useCallback(() => {
-    if (portRef.current) send(portRef.current, { type: 'recording:stop' });
+    setConnection(whileConnected((current) => ({ ...current, picking: null, selection: null })));
   }, []);
 
   const disconnect = useCallback(() => {
@@ -164,11 +131,12 @@ export function useInspectorConnection() {
     connect,
     startPicking,
     cancelPicking,
-    selectParent,
-    selectChild,
+    widenPicker,
+    narrowPicker,
+    selectWider,
+    selectNarrower,
+    selectPage,
     clearSelection,
-    startRecording,
-    stopRecording,
     disconnect,
   };
 }

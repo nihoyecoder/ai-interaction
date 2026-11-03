@@ -12,6 +12,7 @@
     "test": "vitest run",
     "fixtures": "node scripts/serve-fixtures.mjs",
     "golden:record": "node scripts/golden/record-captures.mjs",
+    "sections:check": "node scripts/sections/check-sections.mjs",
     "preview:panel": "node scripts/panel-preview/render.mjs",
     "postinstall": "wxt prepare"
   },
